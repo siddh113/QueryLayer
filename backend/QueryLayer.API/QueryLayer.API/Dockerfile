@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY ["QueryLayer.API.csproj", "./"]
-RUN dotnet restore "QueryLayer.Api.csproj"
+RUN dotnet restore "QueryLayer.API.csproj"
 
 COPY . .
 RUN dotnet publish "QueryLayer.API.csproj" -c Release -o /app/publish
