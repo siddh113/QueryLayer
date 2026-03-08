@@ -16,41 +16,11 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Table names are explicit because EF snake_case convention uses singular form
+        // but our Supabase tables use plural snake_case names
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<Project>().ToTable("projects");
         modelBuilder.Entity<ProjectSpec>().ToTable("project_specs");
         modelBuilder.Entity<ProjectKey>().ToTable("project_keys");
-
-        modelBuilder.Entity<ProjectSpec>()
-            .Property(x => x.SpecJson)
-            .HasColumnName("spec_json");
-
-        modelBuilder.Entity<ProjectKey>()
-            .Property(x => x.ApiKeyHash)
-            .HasColumnName("api_key_hash");
-
-        modelBuilder.Entity<Project>()
-            .Property(x => x.OwnerUserId)
-            .HasColumnName("owner_user_id");
-
-        modelBuilder.Entity<User>()
-            .Property(x => x.CreatedAt)
-            .HasColumnName("created_at");
-
-        modelBuilder.Entity<Project>()
-            .Property(x => x.CreatedAt)
-            .HasColumnName("created_at");
-
-        modelBuilder.Entity<ProjectSpec>()
-            .Property(x => x.CreatedAt)
-            .HasColumnName("created_at");
-
-        modelBuilder.Entity<ProjectSpec>()
-            .Property(x => x.UpdatedAt)
-            .HasColumnName("updated_at");
-
-        modelBuilder.Entity<ProjectKey>()
-            .Property(x => x.CreatedAt)
-            .HasColumnName("created_at");
     }
 }
