@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using QueryLayer.Api.Data;
 using QueryLayer.Api.Middleware;
+using QueryLayer.Api.Services.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,16 @@ var databaseUrl =
     builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(databaseUrl));
+    options.UseNpgsql(databaseUrl).UseSnakeCaseNamingConvention());
+
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<SpecService>();
+builder.Services.AddScoped<ProjectRuntimeResolver>();
+builder.Services.AddSingleton<EndpointMatcher>();
+builder.Services.AddSingleton<RequestBodyValidator>();
+builder.Services.AddSingleton<SqlQueryBuilder>();
+builder.Services.AddScoped<RuntimeExecutor>();
 
 builder.Services.AddCors(options =>
 {
