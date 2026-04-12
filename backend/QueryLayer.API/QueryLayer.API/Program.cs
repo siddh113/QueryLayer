@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using QueryLayer.Api.Data;
 using QueryLayer.Api.Middleware;
+using QueryLayer.Api.Services.Auth;
 using QueryLayer.Api.Services.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,19 @@ builder.Services.AddSingleton<RequestBodyValidator>();
 builder.Services.AddSingleton<SqlQueryBuilder>();
 builder.Services.AddScoped<RuntimeExecutor>();
 
+builder.Services.AddSingleton<PostgresTypeMapper>();
+builder.Services.AddSingleton<EntityParser>();
+builder.Services.AddScoped<SchemaGeneratorService>();
+builder.Services.AddScoped<SchemaMigrationService>();
+builder.Services.AddScoped<SchemaSyncValidator>();
+
+builder.Services.AddSingleton<PasswordHasher>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PlatformAuthService>();
+builder.Services.AddScoped<PermissionService>();
+builder.Services.AddScoped<RbacEvaluator>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
@@ -47,6 +61,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<JwtAuthMiddleware>();
 
 app.UseSerilogRequestLogging();
 
@@ -56,9 +71,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Ensure auth tables exist
+using (var scope = app.Services.CreateScope())
+{
+    var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
+    await authService.EnsureAuthTableAsync();
+
+    var platformAuth = scope.ServiceProvider.GetRequiredService<PlatformAuthService>();
+    await platformAuth.EnsurePlatformTablesAsync();
+}
+
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

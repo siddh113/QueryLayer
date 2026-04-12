@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using QueryLayer.Api.Services.Auth;
 using QueryLayer.Api.Services.Runtime;
 
 namespace QueryLayer.Api.Controllers;
@@ -10,17 +11,20 @@ public class RuntimeController : ControllerBase
     private readonly EndpointMatcher _matcher;
     private readonly RequestBodyValidator _validator;
     private readonly RuntimeExecutor _executor;
+    private readonly RbacEvaluator _rbacEvaluator;
 
     public RuntimeController(
         ProjectRuntimeResolver resolver,
         EndpointMatcher matcher,
         RequestBodyValidator validator,
-        RuntimeExecutor executor)
+        RuntimeExecutor executor,
+        RbacEvaluator rbacEvaluator)
     {
         _resolver = resolver;
         _matcher = matcher;
         _validator = validator;
         _executor = executor;
+        _rbacEvaluator = rbacEvaluator;
     }
 
     [HttpGet]
@@ -69,6 +73,14 @@ public class RuntimeController : ControllerBase
         if (entity == null)
             return NotFound(new { error = "Entity not found" });
 
+        // Build auth context from JWT middleware
+        var authContext = BuildAuthContext();
+
+        // Evaluate RBAC
+        var rbacResult = _rbacEvaluator.Evaluate(endpoint, entity, spec, authContext);
+        if (!rbacResult.IsAllowed)
+            return StatusCode(rbacResult.StatusCode, new { error = rbacResult.Error });
+
         if (method is "POST" or "PUT" or "PATCH")
         {
             body ??= new();
@@ -80,7 +92,25 @@ public class RuntimeController : ControllerBase
         var queryParams = HttpContext.Request.Query
             .ToDictionary(q => q.Key, q => q.Value.ToString());
 
-        var result = await _executor.ExecuteAsync(endpoint, entity, pathParams, body, queryParams);
+        var result = await _executor.ExecuteAsync(endpoint, entity, pathParams, body, queryParams, rbacResult.RowFilter);
         return Ok(result);
+    }
+
+    private AuthContext BuildAuthContext()
+    {
+        var userIdStr = HttpContext.Items["user_id"] as string;
+        var projectIdStr = HttpContext.Items["project_id"] as string;
+        var role = HttpContext.Items["role"] as string;
+
+        if (userIdStr == null || !Guid.TryParse(userIdStr, out var userId))
+            return AuthContext.Anonymous();
+
+        return new AuthContext
+        {
+            IsAuthenticated = true,
+            UserId = userId,
+            ProjectId = Guid.TryParse(projectIdStr, out var pid) ? pid : null,
+            Role = role ?? "user"
+        };
     }
 }

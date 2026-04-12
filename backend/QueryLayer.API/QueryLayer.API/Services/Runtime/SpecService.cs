@@ -41,4 +41,9 @@ public class SpecService
 
         return spec;
     }
+
+    public void InvalidateCache(Guid projectId)
+    {
+        _cache.Remove($"spec:{projectId}");
+    }
 }
