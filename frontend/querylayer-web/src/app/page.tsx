@@ -1,21 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { api } from "../services/api";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../lib/auth-context";
 
 export default function HomePage() {
-  const [status, setStatus] = useState("Checking backend...");
+  const { token, isLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    api.get("/api/health")
-      .then(() => setStatus("Backend connected"))
-      .catch(() => setStatus("Backend unavailable"));
-  }, []);
+    if (!isLoading) {
+      router.replace(token ? "/dashboard" : "/login");
+    }
+  }, [isLoading, token, router]);
 
   return (
-    <main className="p-8">
-      <h1 className="text-3xl font-bold mb-4">QueryLayer</h1>
-      <p>{status}</p>
-    </main>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-gray-500">Loading...</div>
+    </div>
   );
 }

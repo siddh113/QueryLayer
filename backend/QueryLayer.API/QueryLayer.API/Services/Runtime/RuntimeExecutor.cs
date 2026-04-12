@@ -19,7 +19,8 @@ public class RuntimeExecutor
         EntitySpec entity,
         Dictionary<string, string> pathParams,
         Dictionary<string, object?>? body,
-        Dictionary<string, string> queryParams)
+        Dictionary<string, string> queryParams,
+        string? rowFilter = null)
     {
         var connectionString =
             Environment.GetEnvironmentVariable("DATABASE_URL") ??
@@ -41,11 +42,13 @@ public class RuntimeExecutor
                 if (page < 1) page = 1;
                 if (limit < 1 || limit > 100) limit = 20;
                 query = _queryBuilder.BuildList(entity, filters, page, limit);
+                ApplyRowFilter(query, rowFilter);
                 return await ExecuteQueryAsync(conn, query);
 
             case "read":
                 var readId = pathParams.Values.FirstOrDefault() ?? "";
                 query = _queryBuilder.BuildRead(entity, readId);
+                ApplyRowFilter(query, rowFilter);
                 var rows = await ExecuteQueryAsync(conn, query);
                 return rows.FirstOrDefault();
 
@@ -57,6 +60,7 @@ public class RuntimeExecutor
             case "update":
                 var updateId = pathParams.Values.FirstOrDefault() ?? "";
                 query = _queryBuilder.BuildUpdate(entity, updateId, body ?? new());
+                ApplyRowFilter(query, rowFilter);
                 var updated = await ExecuteQueryAsync(conn, query);
                 return updated.FirstOrDefault();
 
@@ -64,6 +68,7 @@ public class RuntimeExecutor
             {
                 var deleteId = pathParams.Values.FirstOrDefault() ?? "";
                 query = _queryBuilder.BuildDelete(entity, deleteId);
+                ApplyRowFilter(query, rowFilter);
                 await using var deleteCmd = BuildCommand(conn, query);
                 await deleteCmd.ExecuteNonQueryAsync();
                 return new { message = "Deleted successfully" };
@@ -89,6 +94,44 @@ public class RuntimeExecutor
             results.Add(row);
         }
         return results;
+    }
+
+    private static void ApplyRowFilter(SqlQuery query, string? rowFilter)
+    {
+        if (string.IsNullOrEmpty(rowFilter)) return;
+
+        // Inject the row filter into the WHERE clause
+        var sql = query.Sql;
+        var whereIndex = sql.IndexOf(" WHERE ", StringComparison.OrdinalIgnoreCase);
+
+        if (whereIndex >= 0)
+        {
+            // Insert after existing WHERE keyword
+            var insertPos = whereIndex + " WHERE ".Length;
+            query.Sql = sql.Insert(insertPos, $"({rowFilter}) AND ");
+        }
+        else
+        {
+            // Find the right place to insert WHERE (before LIMIT, ORDER BY, RETURNING, etc.)
+            var insertBefore = FindInsertPoint(sql);
+            if (insertBefore >= 0)
+                query.Sql = sql.Insert(insertBefore, $" WHERE {rowFilter}");
+            else
+                query.Sql = sql + $" WHERE {rowFilter}";
+        }
+    }
+
+    private static int FindInsertPoint(string sql)
+    {
+        string[] keywords = [" LIMIT ", " ORDER BY ", " RETURNING "];
+        var earliest = -1;
+        foreach (var kw in keywords)
+        {
+            var idx = sql.IndexOf(kw, StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0 && (earliest < 0 || idx < earliest))
+                earliest = idx;
+        }
+        return earliest;
     }
 
     private static NpgsqlCommand BuildCommand(NpgsqlConnection conn, SqlQuery query)
