@@ -26,17 +26,34 @@ var databaseUrl =
 // Render provides postgres:// URIs; convert to Npgsql connection string if needed
 static string ResolveConnectionString(string url)
 {
-    if (!url.StartsWith("postgres://") && !url.StartsWith("postgresql://"))
-        return url;
+    string npgsql;
+    if (url.StartsWith("postgres://") || url.StartsWith("postgresql://"))
+    {
+        var uri = new Uri(url);
+        var userInfo = uri.UserInfo.Split(':');
+        var user = userInfo[0];
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var db = uri.AbsolutePath.TrimStart('/');
+        npgsql = $"Host={host};Port={port};Database={db};Username={user};Password={password}";
+    }
+    else
+    {
+        npgsql = url;
+    }
 
-    var uri = new Uri(url);
-    var userInfo = uri.UserInfo.Split(':');
-    var user = userInfo[0];
-    var password = userInfo.Length > 1 ? userInfo[1] : "";
-    var host = uri.Host;
-    var port = uri.Port > 0 ? uri.Port : 5432;
-    var db = uri.AbsolutePath.TrimStart('/');
-    return $"Host={host};Port={port};Database={db};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    // Ensure SSL settings required for Supabase on Render's Linux containers
+    var lower = npgsql.ToLowerInvariant();
+    if (!lower.Contains("ssl mode=") && !lower.Contains("sslmode="))
+        npgsql += ";SSL Mode=Require";
+    if (!lower.Contains("trust server certificate=") && !lower.Contains("trustservercertificate="))
+        npgsql += ";Trust Server Certificate=true";
+    // Disable connection pooling at the Npgsql level to avoid native SSL pool segfaults on Linux
+    if (!lower.Contains("pooling="))
+        npgsql += ";Pooling=false";
+
+    return npgsql;
 }
 
 var connectionString = ResolveConnectionString(databaseUrl);
