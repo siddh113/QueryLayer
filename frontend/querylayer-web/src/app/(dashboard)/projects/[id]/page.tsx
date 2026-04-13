@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getProject, getSpec } from "../../../../services/api";
+import { getProject, getSpec, getExamples } from "../../../../services/api";
+import type { EndpointExample } from "../../../../services/api";
 import SpecEditor from "../../../../components/SpecEditor";
 import ApiExplorer from "../../../../components/ApiExplorer";
+import AISpecGenerator from "../../../../components/AISpecGenerator";
+import AISpecEditor from "../../../../components/AISpecEditor";
+import ApiExamplesPanel from "../../../../components/ApiExamplesPanel";
+import ProjectKeysPanel from "../../../../components/ProjectKeysPanel";
+import FrontendIntegrationGuide from "../../../../components/FrontendIntegrationGuide";
 import type { Project, BackendSpec } from "../../../../types";
 
-type Tab = "overview" | "spec" | "explorer";
+type Tab = "overview" | "ai" | "spec" | "explorer" | "examples" | "keys" | "integration";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [spec, setSpec] = useState<BackendSpec | null>(null);
   const [specVersion, setSpecVersion] = useState(0);
+  const [examples, setExamples] = useState<EndpointExample[]>([]);
   const [tab, setTab] = useState<Tab>("overview");
+  const [aiSubTab, setAiSubTab] = useState<"generate" | "edit">("generate");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -23,7 +31,8 @@ export default function ProjectDetailPage() {
     Promise.all([
       getProject(id).catch(() => null),
       getSpec(id).catch(() => null),
-    ]).then(([proj, specData]) => {
+      getExamples(id).catch(() => []),
+    ]).then(([proj, specData, exampleData]) => {
       if (proj) setProject(proj);
       else setError("Project not found");
       if (specData) {
@@ -34,6 +43,7 @@ export default function ProjectDetailPage() {
           setSpec({ entities: [], endpoints: [], permissions: [] });
         }
       }
+      if (exampleData) setExamples(exampleData);
       setLoading(false);
     });
   }, [id]);
@@ -44,8 +54,12 @@ export default function ProjectDetailPage() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
+    { key: "ai", label: "AI Assistant" },
     { key: "spec", label: "Backend Spec" },
     { key: "explorer", label: "API Explorer" },
+    { key: "examples", label: "Code Examples" },
+    { key: "keys", label: "API Keys" },
+    { key: "integration", label: "Integration Guide" },
   ];
 
   return (
@@ -109,6 +123,54 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {tab === "ai" && (
+        <div className="space-y-4">
+          <div className="flex gap-1 border-b border-gray-100 mb-4">
+            <button
+              onClick={() => setAiSubTab("generate")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t transition-colors ${
+                aiSubTab === "generate"
+                  ? "bg-purple-50 text-purple-700 border border-b-0 border-purple-200"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Generate Spec
+            </button>
+            <button
+              onClick={() => setAiSubTab("edit")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-t transition-colors ${
+                aiSubTab === "edit"
+                  ? "bg-purple-50 text-purple-700 border border-b-0 border-purple-200"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Edit Spec
+            </button>
+          </div>
+
+          {aiSubTab === "generate" && (
+            <AISpecGenerator
+              projectId={project.id}
+              onSpecSaved={(newSpec, version) => {
+                setSpec(newSpec);
+                setSpecVersion(version);
+              }}
+            />
+          )}
+
+          {aiSubTab === "edit" && (
+            <AISpecEditor
+              projectId={project.id}
+              currentSpec={spec}
+              onSpecSaved={(newSpec, version) => {
+                setSpec(newSpec);
+                setSpecVersion(version);
+              }}
+            />
+          )}
+        </div>
+      )}
+
       {tab === "spec" && (
         <SpecEditor
           projectId={project.id}
@@ -122,6 +184,18 @@ export default function ProjectDetailPage() {
 
       {tab === "explorer" && (
         <ApiExplorer projectId={project.id} spec={spec} />
+      )}
+
+      {tab === "examples" && (
+        <ApiExamplesPanel examples={examples} />
+      )}
+
+      {tab === "keys" && (
+        <ProjectKeysPanel projectId={project.id} />
+      )}
+
+      {tab === "integration" && (
+        <FrontendIntegrationGuide projectId={project.id} />
       )}
     </div>
   );

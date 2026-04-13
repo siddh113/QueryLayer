@@ -25,8 +25,8 @@ export default function EndpointTester({ endpoint, entity, projectId }: Endpoint
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Extract path params like :id
-  const paramNames = (endpoint.path.match(/:(\w+)/g) || []).map((p) => p.slice(1));
+  // Extract path params like {id}
+  const paramNames = (endpoint.path.match(/\{(\w+)\}/g) || []).map((p) => p.slice(1, -1));
 
   const handleSend = async () => {
     setError("");
@@ -35,7 +35,7 @@ export default function EndpointTester({ endpoint, entity, projectId }: Endpoint
 
     let resolvedPath = endpoint.path;
     for (const [key, val] of Object.entries(pathParams)) {
-      resolvedPath = resolvedPath.replace(`:${key}`, encodeURIComponent(val));
+      resolvedPath = resolvedPath.replace(`{${key}}`, encodeURIComponent(val));
     }
 
     let parsedBody: Record<string, unknown> | undefined;

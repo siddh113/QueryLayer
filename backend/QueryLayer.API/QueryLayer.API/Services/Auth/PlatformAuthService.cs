@@ -105,7 +105,18 @@ public class PlatformAuthService
                 ""created_at"" timestamptz DEFAULT now()
             );
             ALTER TABLE ""projects"" ADD COLUMN IF NOT EXISTS ""owner_user_id"" uuid;
-            ALTER TABLE ""projects"" DROP CONSTRAINT IF EXISTS ""projects_owner_user_id_fkey"";";
+            ALTER TABLE ""projects"" DROP CONSTRAINT IF EXISTS ""projects_owner_user_id_fkey"";
+            CREATE TABLE IF NOT EXISTS ""project_api_keys"" (
+                ""id"" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+                ""project_id"" uuid NOT NULL REFERENCES ""projects""(""id"") ON DELETE CASCADE,
+                ""key_type"" varchar(20) NOT NULL,
+                ""key_hash"" varchar(64) NOT NULL UNIQUE,
+                ""key_prefix"" varchar(32) NOT NULL,
+                ""name"" varchar(100),
+                ""created_at"" timestamptz NOT NULL DEFAULT now(),
+                ""last_used_at"" timestamptz,
+                ""revoked_at"" timestamptz
+            );";
 
         await using var cmd = new NpgsqlCommand(sql, conn);
         await cmd.ExecuteNonQueryAsync();

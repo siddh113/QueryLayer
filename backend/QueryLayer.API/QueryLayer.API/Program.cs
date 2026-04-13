@@ -1,8 +1,12 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Threading.RateLimiting;
 using QueryLayer.Api.Data;
 using QueryLayer.Api.Middleware;
+using QueryLayer.Api.Services.AI;
 using QueryLayer.Api.Services.Auth;
+using QueryLayer.Api.Services.DX;
 using QueryLayer.Api.Services.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +46,31 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PlatformAuthService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<RbacEvaluator>();
+builder.Services.AddScoped<KeyManagementService>();
+
+// AI Services
+builder.Services.AddHttpClient<AIService>();
+builder.Services.AddSingleton<PromptBuilder>();
+builder.Services.AddSingleton<SpecValidator>();
+builder.Services.AddScoped<AIService>();
+builder.Services.AddScoped<SpecRepairService>();
+
+// DX Services
+builder.Services.AddSingleton<OpenApiGeneratorService>();
+builder.Services.AddSingleton<ApiExampleGenerator>();
+
+// Rate limiting: 100 requests/minute per IP on runtime API routes
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("RuntimePolicy", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 100;
+        opt.QueueLimit = 0;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+    options.RejectionStatusCode = 429;
+});
 
 builder.Services.AddCors(options =>
 {
@@ -63,6 +92,7 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<JwtAuthMiddleware>();
 
+app.UseRateLimiter();
 app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())

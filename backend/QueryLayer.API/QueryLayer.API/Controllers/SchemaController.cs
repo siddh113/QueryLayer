@@ -75,7 +75,18 @@ public class SchemaController : ControllerBase
         };
 
         _db.ProjectSpecs.Add(projectSpec);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            var innerMsg = ex.InnerException?.InnerException?.Message
+                           ?? ex.InnerException?.Message
+                           ?? ex.Message;
+            _logger.LogError(ex, "Failed to save spec to database for project {ProjectId}. Inner: {Inner}", id, innerMsg);
+            return StatusCode(500, new { error = "Failed to save spec to database", details = innerMsg });
+        }
 
         // 3. Generate schema SQL and 4. Execute migrations
         try
@@ -95,8 +106,11 @@ public class SchemaController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Schema migration failed for project {ProjectId}", id);
-            return StatusCode(500, new { error = "Schema migration failed", details = ex.Message });
+            var innerMsg = ex.InnerException?.InnerException?.Message
+                           ?? ex.InnerException?.Message
+                           ?? ex.Message;
+            _logger.LogError(ex, "Schema migration failed for project {ProjectId}. Root cause: {Inner}", id, innerMsg);
+            return StatusCode(500, new { error = "Schema migration failed", details = innerMsg });
         }
 
         // 5. Refresh runtime cache

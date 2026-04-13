@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using QueryLayer.Api.Services.Auth;
 using QueryLayer.Api.Services.Runtime;
 
 namespace QueryLayer.Api.Controllers;
 
 [ApiController]
+[EnableRateLimiting("RuntimePolicy")]
 public class RuntimeController : ControllerBase
 {
     private readonly ProjectRuntimeResolver _resolver;
@@ -98,10 +100,34 @@ public class RuntimeController : ControllerBase
 
     private AuthContext BuildAuthContext()
     {
+        var authMethod = HttpContext.Items["auth_method"] as string;
         var userIdStr = HttpContext.Items["user_id"] as string;
         var projectIdStr = HttpContext.Items["project_id"] as string;
         var role = HttpContext.Items["role"] as string;
 
+        // Secret API key auth — not a user session
+        if (authMethod == "secret_key")
+        {
+            var keyProjectIdStr = HttpContext.Items["api_key_project_id"] as string;
+            return new AuthContext
+            {
+                IsAuthenticated = false,
+                AuthMethod = "secret_key",
+                ProjectId = Guid.TryParse(keyProjectIdStr, out var kpid) ? kpid : null
+            };
+        }
+
+        // Public key only — no elevated access
+        if (authMethod == "public_key")
+        {
+            return new AuthContext
+            {
+                IsAuthenticated = false,
+                AuthMethod = "public_key"
+            };
+        }
+
+        // JWT auth
         if (userIdStr == null || !Guid.TryParse(userIdStr, out var userId))
             return AuthContext.Anonymous();
 
@@ -110,7 +136,8 @@ public class RuntimeController : ControllerBase
             IsAuthenticated = true,
             UserId = userId,
             ProjectId = Guid.TryParse(projectIdStr, out var pid) ? pid : null,
-            Role = role ?? "user"
+            Role = role ?? "user",
+            AuthMethod = "jwt"
         };
     }
 }
