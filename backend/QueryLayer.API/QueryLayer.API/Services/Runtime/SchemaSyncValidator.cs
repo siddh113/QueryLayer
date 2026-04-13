@@ -110,10 +110,13 @@ public class SchemaSyncValidator
         var statements = new List<string>();
         var validation = await ValidateAsync(entities);
 
-        // Create missing tables
-        foreach (var table in validation.MissingTables)
+        // Create missing tables — sorted so referenced tables are created first
+        var missingEntities = validation.MissingTables
+            .Select(t => entities.First(e => e.Table.Equals(t, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        foreach (var entity in TopologicalSort(missingEntities))
         {
-            var entity = entities.First(e => e.Table.Equals(table, StringComparison.OrdinalIgnoreCase));
             statements.Add(_schemaGenerator.GenerateCreateTable(entity));
             statements.AddRange(_schemaGenerator.GenerateIndexes(entity));
         }
@@ -135,6 +138,36 @@ public class SchemaSyncValidator
         }
 
         return statements;
+    }
+
+    /// <summary>
+    /// Returns entities ordered so that tables referenced by FK constraints come before the tables that depend on them.
+    /// </summary>
+    private static List<EntitySpec> TopologicalSort(List<EntitySpec> entities)
+    {
+        var tableToEntity = entities.ToDictionary(e => e.Table.ToLowerInvariant(), StringComparer.OrdinalIgnoreCase);
+        var sorted = new List<EntitySpec>();
+        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void Visit(EntitySpec entity)
+        {
+            var key = entity.Table.ToLowerInvariant();
+            if (visited.Contains(key)) return;
+            visited.Add(key);
+
+            foreach (var field in entity.Fields)
+            {
+                if (field.Relation != null && tableToEntity.TryGetValue(field.Relation.Table, out var dep))
+                    Visit(dep);
+            }
+
+            sorted.Add(entity);
+        }
+
+        foreach (var entity in entities)
+            Visit(entity);
+
+        return sorted;
     }
 
     private static string NormalizePgType(string pgType)

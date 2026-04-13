@@ -23,10 +23,27 @@ public class PermissionService
         if (authMode == "public")
             return PermissionResult.Allowed();
 
-        // Authenticated/admin endpoints need a valid user
+        // Service endpoints require a secret API key
+        if (authMode == "service")
+        {
+            if (authContext.AuthMethod == "secret_key")
+                return PermissionResult.Allowed();
+
+            _logger.LogWarning("Service endpoint {Path} requires a secret API key (x-api-key header).", endpoint.Path);
+            return PermissionResult.Denied("Secret API key required for service endpoint", 401);
+        }
+
+        // Authenticated/admin endpoints need a valid JWT user
         if (!authContext.IsAuthenticated)
         {
             _logger.LogWarning("Unauthenticated access attempt to {Method} {Path}.", endpoint.Method, endpoint.Path);
+
+            if (authContext.AuthMethod == "public_key")
+                return PermissionResult.Denied("Public key cannot be used for authenticated endpoint", 401);
+
+            if (authContext.AuthMethod == "secret_key")
+                return PermissionResult.Denied("JWT token required for this endpoint", 401);
+
             return PermissionResult.Denied("Unauthorized", 401);
         }
 
@@ -37,6 +54,10 @@ public class PermissionService
                 authContext.UserId, authContext.Role, endpoint.Path);
             return PermissionResult.Denied("Forbidden", 403);
         }
+
+        // Admins bypass entity-level permission checks
+        if (authContext.Role == "admin")
+            return PermissionResult.Allowed();
 
         // Check entity-level permissions from spec
         var permission = spec.Permissions?.FirstOrDefault(p =>
@@ -89,6 +110,7 @@ public class AuthContext
     public Guid? UserId { get; set; }
     public Guid? ProjectId { get; set; }
     public string Role { get; set; } = "user";
+    public string? AuthMethod { get; set; } // "jwt" | "secret_key" | "public_key" | null
 
     public static AuthContext Anonymous() => new() { IsAuthenticated = false };
 }

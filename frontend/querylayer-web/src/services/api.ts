@@ -72,6 +72,76 @@ export async function validateSchema(projectId: string) {
   return res.data;
 }
 
+// AI Spec Generation
+export async function generateSpec(projectId: string, prompt: string) {
+  const res = await api.post(`/projects/${projectId}/generate-spec`, { prompt });
+  return res.data as { spec: BackendSpec; specJson: string };
+}
+
+export async function editSpec(projectId: string, instruction: string) {
+  const res = await api.post(`/projects/${projectId}/edit-spec`, { instruction });
+  return res.data as { spec: BackendSpec; specJson: string };
+}
+
+// Key Management
+export interface ApiKeyRecord {
+  id: string;
+  keyType: string;
+  keyPrefix: string;
+  name?: string;
+  createdAt: string;
+  lastUsedAt?: string;
+  revokedAt?: string;
+  isActive: boolean;
+}
+
+export interface GeneratedKey extends ApiKeyRecord {
+  rawKey: string;
+  warning?: string;
+}
+
+export async function getKeys(projectId: string) {
+  const res = await api.get(`/projects/${projectId}/keys`);
+  return res.data as ApiKeyRecord[];
+}
+
+export async function generateKey(projectId: string, keyType: "public" | "secret", name?: string) {
+  const res = await api.post(`/projects/${projectId}/keys/generate`, { keyType, name });
+  return res.data as GeneratedKey;
+}
+
+export async function revokeKey(projectId: string, keyId: string) {
+  const res = await api.post(`/projects/${projectId}/keys/${keyId}/revoke`);
+  return res.data as { message: string };
+}
+
+export async function rotateKey(projectId: string, keyId: string) {
+  const res = await api.post(`/projects/${projectId}/keys/${keyId}/rotate`);
+  return res.data as GeneratedKey;
+}
+
+// DX: OpenAPI + Examples
+export async function getOpenApi(projectId: string) {
+  const res = await api.get(`/projects/${projectId}/openapi`);
+  return res.data;
+}
+
+export async function getExamples(projectId: string) {
+  const res = await api.get(`/projects/${projectId}/examples`);
+  return res.data as EndpointExample[];
+}
+
+export interface EndpointExample {
+  method: string;
+  path: string;
+  entity: string;
+  auth?: string;
+  sampleBody?: string;
+  curl: string;
+  fetch: string;
+  url: string;
+}
+
 // Runtime API calls
 export async function callEndpoint(
   projectKey: string,

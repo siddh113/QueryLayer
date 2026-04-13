@@ -110,7 +110,7 @@ public class SchemaGeneratorService
             var sql = $"ALTER TABLE \"{t}\" ADD COLUMN IF NOT EXISTS \"{col}\" {pgType}";
 
             if (field.Required)
-                sql += " NOT NULL DEFAULT ''";
+                sql += $" NOT NULL DEFAULT {GetDefaultForType(field.Type)}";
             if (field.Unique)
                 sql += " UNIQUE";
 
@@ -121,8 +121,10 @@ public class SchemaGeneratorService
             {
                 var refTable = ValidateId(field.Relation.Table);
                 var refCol = ValidateId(field.Relation.Column);
-                statements.Add(
-                    $"ALTER TABLE \"{t}\" ADD CONSTRAINT \"fk_{t}_{col}\" FOREIGN KEY (\"{col}\") REFERENCES \"{refTable}\"(\"{refCol}\");");
+                // DROP IF EXISTS then re-add — PostgreSQL has no ADD CONSTRAINT IF NOT EXISTS
+                // NOT VALID skips validation of existing rows (safe for migrations)
+                statements.Add($"ALTER TABLE \"{t}\" DROP CONSTRAINT IF EXISTS \"fk_{t}_{col}\";");
+                statements.Add($"ALTER TABLE \"{t}\" ADD CONSTRAINT \"fk_{t}_{col}\" FOREIGN KEY (\"{col}\") REFERENCES \"{refTable}\"(\"{refCol}\") NOT VALID;");
             }
         }
 
@@ -149,6 +151,15 @@ public class SchemaGeneratorService
             })
             .ToList();
     }
+
+    private static string GetDefaultForType(string specType) => specType.ToLowerInvariant() switch
+    {
+        "integer" => "0",
+        "boolean" => "false",
+        "uuid" => "gen_random_uuid()",
+        "timestamp" => "now()",
+        _ => "''"   // string, text
+    };
 
     private static string ValidateId(string name)
     {

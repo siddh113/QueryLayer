@@ -130,9 +130,9 @@ public class SqlQueryBuilder
 
     private static object ParseId(EntitySpec entity, string id)
     {
-        var pk = entity.Fields.FirstOrDefault(f => f.Primary);
-        if (pk?.Type.Equals("uuid", StringComparison.OrdinalIgnoreCase) == true
-            && Guid.TryParse(id, out var guid))
+        // Always cast to Guid if the value parses as one — avoids "uuid = text" type errors
+        // when the spec field type doesn't exactly match the actual DB column type.
+        if (Guid.TryParse(id, out var guid))
             return guid;
         return id;
     }

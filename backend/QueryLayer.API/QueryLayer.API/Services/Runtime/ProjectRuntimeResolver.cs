@@ -19,8 +19,16 @@ public class ProjectRuntimeResolver
 
     public async Task<BackendSpec?> ResolveSpecAsync(string apiKey)
     {
-        var hash = HashApiKey(apiKey);
+        // Try resolving as a direct project UUID (used by the dashboard explorer)
+        if (Guid.TryParse(apiKey, out var projectId))
+        {
+            var exists = await _db.Projects.AnyAsync(p => p.Id == projectId);
+            if (exists)
+                return await _specService.GetSpecAsync(projectId);
+        }
 
+        // Fall back to hashed API key lookup
+        var hash = HashApiKey(apiKey);
         var projectKey = await _db.ProjectKeys
             .FirstOrDefaultAsync(pk => pk.ApiKeyHash == hash);
 

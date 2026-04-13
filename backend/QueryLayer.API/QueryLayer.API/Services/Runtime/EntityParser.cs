@@ -25,6 +25,11 @@ public class EntityParser
         return spec.Entities;
     }
 
+    private static readonly HashSet<string> ReservedTables = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "users", "projects", "project_specs", "project_keys", "auth_users", "platform_users"
+    };
+
     private static void Validate(BackendSpec spec)
     {
         foreach (var entity in spec.Entities)
@@ -33,6 +38,8 @@ public class EntityParser
                 throw new InvalidOperationException("Entity name is required.");
             if (string.IsNullOrWhiteSpace(entity.Table))
                 throw new InvalidOperationException($"Table name is required for entity '{entity.Name}'.");
+            if (ReservedTables.Contains(entity.Table))
+                throw new InvalidOperationException($"Table name '{entity.Table}' is reserved by the platform. Use a different name (e.g., 'app_users', 'members').");
             if (entity.Fields.Count == 0)
                 throw new InvalidOperationException($"Entity '{entity.Name}' must have at least one field.");
             if (!entity.Fields.Any(f => f.Primary))
