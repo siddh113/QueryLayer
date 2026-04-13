@@ -20,10 +20,32 @@ builder.Host.UseSerilog();
 
 var databaseUrl =
     Environment.GetEnvironmentVariable("DATABASE_URL") ??
-    builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DATABASE_URL or DefaultConnection must be set.");
+
+// Render provides postgres:// URIs; convert to Npgsql connection string if needed
+static string ResolveConnectionString(string url)
+{
+    if (!url.StartsWith("postgres://") && !url.StartsWith("postgresql://"))
+        return url;
+
+    var uri = new Uri(url);
+    var userInfo = uri.UserInfo.Split(':');
+    var user = userInfo[0];
+    var password = userInfo.Length > 1 ? userInfo[1] : "";
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var db = uri.AbsolutePath.TrimStart('/');
+    return $"Host={host};Port={port};Database={db};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+}
+
+var connectionString = ResolveConnectionString(databaseUrl);
+
+// Normalize so all services reading DATABASE_URL directly get the correct format
+Environment.SetEnvironmentVariable("DATABASE_URL", connectionString);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(databaseUrl).UseSnakeCaseNamingConvention());
+    options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention());
 
 builder.Services.AddMemoryCache();
 
