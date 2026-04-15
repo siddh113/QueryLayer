@@ -29,40 +29,84 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="max-w-lg">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Create Project</h1>
+    <div className="max-w-lg fade-in">
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold" style={{ color: "#ededed" }}>New project</h1>
+        <p className="text-sm mt-0.5" style={{ color: "#525252" }}>Configure your new backend project</p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-lg p-5 space-y-4"
+        style={{ background: "#141414", border: "1px solid #262626" }}
+      >
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+          <div
+            className="text-sm px-3 py-2 rounded-md"
+            style={{
+              background: "rgba(248,113,113,0.06)",
+              border: "1px solid rgba(248,113,113,0.15)",
+              color: "#f87171",
+            }}
+          >
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+          <label className="block text-sm mb-1.5" style={{ color: "#a1a1a1" }}>Project name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder="My Backend Project"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="my-backend"
+            style={{
+              width: "100%",
+              background: "#0f0f0f",
+              border: "1px solid #262626",
+              borderRadius: "6px",
+              padding: "8px 12px",
+              fontSize: "14px",
+              color: "#ededed",
+              outline: "none",
+              transition: "border-color 0.15s",
+            }}
+            onFocus={(e) => { e.target.style.borderColor = "#3ecf8e"; }}
+            onBlur={(e) => { e.target.style.borderColor = "#262626"; }}
           />
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 pt-1">
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 text-white rounded px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            style={{
+              background: loading ? "#1f1f1f" : "#3ecf8e",
+              color: loading ? "#525252" : "#0f0f0f",
+              cursor: loading ? "not-allowed" : "pointer",
+              border: "none",
+            }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = "#5de0a3"; }}
+            onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = loading ? "#1f1f1f" : "#3ecf8e"; }}
           >
-            {loading ? "Creating..." : "Create Project"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin w-3.5 h-3.5 border border-current border-t-transparent rounded-full" />
+                Creating...
+              </span>
+            ) : (
+              "Create project"
+            )}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="border border-gray-300 text-gray-700 rounded px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 rounded-md text-sm transition-colors"
+            style={{ background: "transparent", border: "1px solid #262626", color: "#737373", cursor: "pointer" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#333333"; e.currentTarget.style.color = "#a1a1a1"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#262626"; e.currentTarget.style.color = "#737373"; }}
           >
             Cancel
           </button>
