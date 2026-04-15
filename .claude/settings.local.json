@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp:*)",
+      "mcp__render__list_services",
+      "mcp__render__get_selected_workspace",
+      "mcp__render__select_workspace",
+      "Skill(update-config)",
+      "mcp__render__list_logs",
+      "mcp__render__list_deploys",
+      "Bash(dotnet build:*)",
+      "Bash(Remove-Item -Recurse -Force \"D:\\\\QueryLayer\\\\backend\\\\QueryLayer.API\\\\QueryLayer.API\\\\obj\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Recurse -Force \"D:\\\\QueryLayer\\\\backend\\\\QueryLayer.API\\\\QueryLayer.API\\\\bin\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Output \"Cleaned\")",
+      "mcp__render__update_environment_variables"
+    ]
+  }
+}

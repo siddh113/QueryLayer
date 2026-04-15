@@ -1,0 +1,16 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "mcpServers": {
+    "render": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@render-oss/mcp-server-render"],
+      "env": {
+        "RENDER_API_KEY": "rnd_kPUNhhK3SJpgCF1xnoZhtCNbRwok"
+      }
+    }
+  }
+}
