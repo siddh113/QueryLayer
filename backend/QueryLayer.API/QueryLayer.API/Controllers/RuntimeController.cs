@@ -83,9 +83,32 @@ public class RuntimeController : ControllerBase
         if (!rbacResult.IsAllowed)
             return StatusCode(rbacResult.StatusCode, new { error = rbacResult.Error });
 
+        // workflow_transition endpoints are handled by WorkflowController, not here
+        if (endpoint.Operation.Equals("workflow_transition", StringComparison.OrdinalIgnoreCase))
+            return NotFound(new { error = "Endpoint not found" });
+
         if (method is "POST" or "PUT" or "PATCH")
         {
             body ??= new();
+
+            // Workflow state protection: block direct state modification via CRUD
+            var workflow = spec.Workflows.FirstOrDefault(w =>
+                w.Entity.Equals(entity.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (workflow != null)
+            {
+                if (endpoint.Operation.Equals("create", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Auto-inject initial state; ignore any caller-supplied state value
+                    body["state"] = workflow.InitialState;
+                }
+                else if (endpoint.Operation is "update" or "patch")
+                {
+                    // Strip state field — transitions must go through WorkflowController
+                    body.Remove("state");
+                }
+            }
+
             var errors = _validator.Validate(entity, body, endpoint.Operation);
             if (errors.Count > 0)
                 return BadRequest(new { error = "Invalid request", details = errors });
@@ -94,7 +117,18 @@ public class RuntimeController : ControllerBase
         var queryParams = HttpContext.Request.Query
             .ToDictionary(q => q.Key, q => q.Value.ToString());
 
-        var result = await _executor.ExecuteAsync(endpoint, entity, pathParams, body, queryParams, rbacResult.RowFilter);
+        var authCtxDict = new Dictionary<string, object?>
+        {
+            ["user_id"] = authContext.UserId?.ToString(),
+            ["role"] = authContext.Role
+        };
+
+        // Resolve project id from spec resolver
+        var projectIdForEvent = await _resolver.ResolveProjectIdAsync(projectKey);
+
+        var result = await _executor.ExecuteAsync(
+            endpoint, entity, pathParams, body, queryParams,
+            rbacResult.RowFilter, projectIdForEvent, authCtxDict);
         return Ok(result);
     }
 

@@ -147,6 +147,46 @@ public class PlatformController : ControllerBase
         });
     }
 
+    [HttpDelete("projects/{id}")]
+    public async Task<IActionResult> DeleteProject(Guid id)
+    {
+        var userId = GetPlatformUserId();
+        if (userId == null)
+            return Unauthorized(new { error = "Authentication required." });
+
+        await using var conn = await OpenConnectionAsync();
+
+        // Verify ownership
+        await using (var checkCmd = new NpgsqlCommand(
+            "SELECT COUNT(*) FROM projects WHERE id = @id AND owner_user_id = @userId", conn))
+        {
+            checkCmd.Parameters.AddWithValue("id", id);
+            checkCmd.Parameters.AddWithValue("userId", userId.Value);
+            var count = (long)(await checkCmd.ExecuteScalarAsync())!;
+            if (count == 0)
+                return NotFound(new { error = "Project not found." });
+        }
+
+        // Delete spec versions first (FK constraint)
+        await using (var specCmd = new NpgsqlCommand(
+            "DELETE FROM project_specs WHERE project_id = @id", conn))
+        {
+            specCmd.Parameters.AddWithValue("id", id);
+            await specCmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete the project
+        await using (var delCmd = new NpgsqlCommand(
+            "DELETE FROM projects WHERE id = @id AND owner_user_id = @userId", conn))
+        {
+            delCmd.Parameters.AddWithValue("id", id);
+            delCmd.Parameters.AddWithValue("userId", userId.Value);
+            await delCmd.ExecuteNonQueryAsync();
+        }
+
+        return Ok(new { message = "Project deleted." });
+    }
+
     [HttpGet("projects/{id}/spec")]
     public async Task<IActionResult> GetSpec(Guid id)
     {

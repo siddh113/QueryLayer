@@ -1,5 +1,6 @@
 using Npgsql;
 using QueryLayer.Api.Models.Runtime;
+using QueryLayer.Api.Services.Workflow;
 
 namespace QueryLayer.Api.Services.Runtime;
 
@@ -7,11 +8,16 @@ public class RuntimeExecutor
 {
     private readonly IConfiguration _configuration;
     private readonly SqlQueryBuilder _queryBuilder;
+    private readonly EventDispatcher? _eventDispatcher;
 
-    public RuntimeExecutor(IConfiguration configuration, SqlQueryBuilder queryBuilder)
+    public RuntimeExecutor(
+        IConfiguration configuration,
+        SqlQueryBuilder queryBuilder,
+        EventDispatcher? eventDispatcher = null)
     {
         _configuration = configuration;
         _queryBuilder = queryBuilder;
+        _eventDispatcher = eventDispatcher;
     }
 
     public async Task<object?> ExecuteAsync(
@@ -20,7 +26,9 @@ public class RuntimeExecutor
         Dictionary<string, string> pathParams,
         Dictionary<string, object?>? body,
         Dictionary<string, string> queryParams,
-        string? rowFilter = null)
+        string? rowFilter = null,
+        Guid? projectId = null,
+        Dictionary<string, object?>? authContext = null)
     {
         var connectionString =
             Environment.GetEnvironmentVariable("DATABASE_URL") ??
@@ -30,6 +38,7 @@ public class RuntimeExecutor
         await conn.OpenAsync();
 
         SqlQuery query;
+        object? result;
 
         switch (endpoint.Operation.ToLowerInvariant())
         {
@@ -55,28 +64,72 @@ public class RuntimeExecutor
             case "create":
                 query = _queryBuilder.BuildCreate(entity, body ?? new());
                 var created = await ExecuteQueryAsync(conn, query);
-                return created.FirstOrDefault();
+                result = created.FirstOrDefault();
+                DispatchEvent("created", entity, result, null, projectId, authContext);
+                return result;
 
             case "update":
                 var updateId = pathParams.Values.FirstOrDefault() ?? "";
+                // Capture previous record before update for trigger conditions
+                var prevReadQuery = _queryBuilder.BuildRead(entity, updateId);
+                var prevRows = await ExecuteQueryAsync(conn, prevReadQuery);
+                var previousRecord = prevRows.FirstOrDefault();
+
                 query = _queryBuilder.BuildUpdate(entity, updateId, body ?? new());
                 ApplyRowFilter(query, rowFilter);
                 var updated = await ExecuteQueryAsync(conn, query);
-                return updated.FirstOrDefault();
+                result = updated.FirstOrDefault();
+                DispatchEvent("updated", entity, result, previousRecord, projectId, authContext);
+                return result;
 
             case "delete":
             {
                 var deleteId = pathParams.Values.FirstOrDefault() ?? "";
+                // Read before delete so we have record data for event
+                var deleteReadQuery = _queryBuilder.BuildRead(entity, deleteId);
+                var deleteRows = await ExecuteQueryAsync(conn, deleteReadQuery);
+                var deletedRecord = deleteRows.FirstOrDefault();
+
                 query = _queryBuilder.BuildDelete(entity, deleteId);
                 ApplyRowFilter(query, rowFilter);
                 await using var deleteCmd = BuildCommand(conn, query);
                 await deleteCmd.ExecuteNonQueryAsync();
+
+                DispatchEvent("deleted", entity, deletedRecord, null, projectId, authContext);
                 return new { message = "Deleted successfully" };
             }
 
             default:
                 throw new InvalidOperationException($"Unknown operation: {endpoint.Operation}");
         }
+    }
+
+    private void DispatchEvent(
+        string operation,
+        EntitySpec entity,
+        object? record,
+        Dictionary<string, object?>? previousRecord,
+        Guid? projectId,
+        Dictionary<string, object?>? authContext)
+    {
+        if (_eventDispatcher == null || projectId == null) return;
+
+        var recordDict = record as Dictionary<string, object?> ?? new();
+        var eventName = $"{entity.Table ?? entity.Name.ToLowerInvariant()}.{operation}";
+
+        var crudEvent = new CrudEvent
+        {
+            EventName = eventName,
+            ProjectId = projectId.Value,
+            Entity = entity.Name,
+            Operation = operation,
+            Record = recordDict,
+            PreviousRecord = previousRecord,
+            AuthContext = authContext ?? new()
+        };
+
+        // Fire-and-forget: do not block the response
+        _ = Task.Run(() => _eventDispatcher.DispatchAsync(crudEvent));
     }
 
     private static async Task<List<Dictionary<string, object?>>> ExecuteQueryAsync(

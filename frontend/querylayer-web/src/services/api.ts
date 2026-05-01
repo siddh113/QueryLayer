@@ -56,6 +56,11 @@ export async function getProject(id: string) {
   return res.data as Project;
 }
 
+export async function deleteProject(id: string) {
+  const res = await api.delete(`/platform/projects/${id}`);
+  return res.data as { message: string };
+}
+
 // Spec
 export async function getSpec(projectId: string) {
   const res = await api.get(`/platform/projects/${projectId}/spec`);

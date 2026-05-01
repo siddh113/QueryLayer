@@ -28,7 +28,7 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
       const result = await generateSpec(projectId, prompt);
       setPreview(JSON.stringify(result.spec, null, 2));
       setPreviewSpec(result.spec);
-      setMessage("Spec generated. Review and save below.");
+      setMessage("Spec generated successfully. Review and save below.");
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
@@ -71,66 +71,91 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>
           Describe your backend
         </label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="I want a task management app where users can create tasks, assign them to team members, and track progress with statuses like todo, in-progress, and done..."
-          className="w-full h-32 text-sm rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+          className="w-full h-36 text-sm rounded-xl p-4 resize-y input-glow focus:outline-none"
+          style={{
+            background: 'rgba(7, 7, 14, 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: '#f0f0f5',
+          }}
         />
       </div>
 
       <button
         onClick={handleGenerate}
         disabled={generating || !prompt.trim()}
-        className="bg-purple-600 text-white text-sm px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
+        className="text-sm px-5 py-2.5 rounded-xl font-semibold btn-gradient disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {generating ? (
-          <span className="flex items-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Generating...
-          </span>
-        ) : (
-          "Generate Spec"
-        )}
+        <span className="flex items-center gap-2">
+          {generating ? (
+            <>
+              <span className="animate-spin w-4 h-4 rounded-full"
+                style={{ border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }}
+              />
+              Generating...
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              Generate Spec
+            </>
+          )}
+        </span>
       </button>
 
       {error && (
-        <div className="text-sm rounded px-3 py-2 border text-red-600 bg-red-50 border-red-200">
+        <div className="text-sm rounded-xl px-5 py-3.5"
+          style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+        >
           {error}
         </div>
       )}
 
       {message && !error && (
-        <div className="text-sm rounded px-3 py-2 border text-green-700 bg-green-50 border-green-200">
+        <div className="text-sm rounded-xl px-5 py-3.5"
+          style={{ background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.12)', color: '#4ade80' }}
+        >
           {message}
         </div>
       )}
 
       {preview && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900">Preview (editable)</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #06b6d4)' }} />
+              <h3 className="text-sm font-semibold" style={{ color: '#f0f0f5' }}>Preview (editable)</h3>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => { setPreview(null); setPreviewSpec(null); setMessage(""); }}
-                className="border border-gray-300 text-gray-700 text-sm px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"
+                className="text-sm px-4 py-2 rounded-xl font-medium transition-all duration-200"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#a1a1aa',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
               >
                 Discard
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="text-sm px-5 py-2 rounded-xl font-semibold btn-gradient disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Confirm & Save"}
+                <span>{saving ? "Saving..." : "Confirm & Save"}</span>
               </button>
             </div>
           </div>
@@ -138,7 +163,12 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
             value={preview}
             onChange={(e) => setPreview(e.target.value)}
             spellCheck={false}
-            className="w-full h-[400px] font-mono text-sm bg-gray-900 text-green-400 rounded-lg p-4 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full h-[420px] font-mono text-sm rounded-xl p-5 resize-y focus:outline-none input-glow"
+            style={{
+              background: 'rgba(7, 7, 14, 0.8)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              color: '#4ade80',
+            }}
           />
         </div>
       )}

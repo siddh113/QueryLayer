@@ -37,6 +37,21 @@ public class ProjectRuntimeResolver
         return await _specService.GetSpecAsync(projectKey.ProjectId);
     }
 
+    public async Task<Guid?> ResolveProjectIdAsync(string apiKey)
+    {
+        if (Guid.TryParse(apiKey, out var projectId))
+        {
+            var exists = await _db.Projects.AnyAsync(p => p.Id == projectId);
+            return exists ? projectId : null;
+        }
+
+        var hash = HashApiKey(apiKey);
+        var projectKey = await _db.ProjectKeys
+            .FirstOrDefaultAsync(pk => pk.ApiKeyHash == hash);
+
+        return projectKey?.ProjectId;
+    }
+
     private static string HashApiKey(string apiKey)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(apiKey));

@@ -59,7 +59,7 @@ public class DxController : ControllerBase
 
         var spec = await _specService.GetSpecAsync(id);
         if (spec == null)
-            return NotFound(new { error = "No spec found for project" });
+            return Ok(Array.Empty<object>());
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
         var examples = _exampleGenerator.GenerateAll(spec, id.ToString(), baseUrl);

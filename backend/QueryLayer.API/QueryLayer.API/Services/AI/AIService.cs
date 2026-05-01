@@ -21,7 +21,7 @@ public class AIService
             ?? throw new InvalidOperationException("OPENAI_API_KEY environment variable is not set.");
     }
 
-    public async Task<string> GenerateSpecAsync(string userPrompt, bool useStrongerModel = false)
+    public virtual async Task<string> GenerateSpecAsync(string userPrompt, bool useStrongerModel = false)
     {
         var model = useStrongerModel ? StrongerModel : DefaultModel;
         var systemPrompt = _promptBuilder.GetSystemPrompt();
@@ -32,7 +32,7 @@ public class AIService
         return await CallOpenAIAsync(systemPrompt, userMessage, model);
     }
 
-    public async Task<string> EditSpecAsync(string currentSpec, string instruction, bool useStrongerModel = false)
+    public virtual async Task<string> EditSpecAsync(string currentSpec, string instruction, bool useStrongerModel = false)
     {
         var model = useStrongerModel ? StrongerModel : DefaultModel;
         var systemPrompt = _promptBuilder.GetSystemPrompt();
@@ -43,10 +43,10 @@ public class AIService
         return await CallOpenAIAsync(systemPrompt, userMessage, model);
     }
 
-    public async Task<string> RepairSpecAsync(string invalidJson, string validationErrors)
+    public virtual async Task<string> RepairSpecAsync(string invalidJson, string validationErrors, string originalPrompt = "")
     {
         var systemPrompt = _promptBuilder.GetSystemPrompt();
-        var userMessage = $"The following JSON spec is invalid:\n\n{invalidJson}\n\nValidation errors:\n{validationErrors}\n\nFix the spec and return only valid JSON.";
+        var userMessage = _promptBuilder.BuildSpecRepairPrompt(originalPrompt, invalidJson, validationErrors);
 
         _logger.LogInformation("Repairing spec. Errors: {Errors}", validationErrors);
 
@@ -79,7 +79,10 @@ public class AIService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("OpenAI API error: {Status} {Body}", response.StatusCode, responseBody.Length > 500 ? responseBody[..500] : responseBody);
-            throw new InvalidOperationException($"OpenAI API returned {response.StatusCode}");
+            var statusDesc = response.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                ? "Unauthorized — check that OPENAI_API_KEY is valid"
+                : response.StatusCode.ToString();
+            throw new InvalidOperationException($"OpenAI API returned {statusDesc}");
         }
 
         using var doc = JsonDocument.Parse(responseBody);

@@ -36,23 +36,43 @@ public class AIController : ControllerBase
 
         try
         {
-            var result = await _specRepairService.GenerateWithRetryAsync(request.Prompt);
+            var generationResult = await _specRepairService.GenerateWithRetryAsync(request.Prompt);
 
-            if (!result.IsValid)
+            if (!generationResult.IsValid)
             {
-                _logger.LogWarning("Spec generation failed for project {ProjectId}: {Error}", id, result.Error);
-                return UnprocessableEntity(new { error = "Failed to generate a valid spec.", details = result.Error });
+                _logger.LogWarning("Spec generation failed for project {ProjectId}: {Error}", id, generationResult.Error);
+                return UnprocessableEntity(new
+                {
+                    error = "Generated spec failed validation.",
+                    validation = new
+                    {
+                        isValid = false,
+                        errors = generationResult.Validation.Errors,
+                        warnings = generationResult.Validation.Warnings
+                    }
+                });
             }
 
-            var specJson = JsonSerializer.Serialize(result.Spec, new JsonSerializerOptions
+            var specJson = JsonSerializer.Serialize(generationResult.Spec, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
             });
 
-            _logger.LogInformation("Spec generated for project {ProjectId}", id);
+            _logger.LogInformation("Spec generated for project {ProjectId}. Repairs: {RepairCount}", id, generationResult.Repairs.Count);
 
-            return Ok(new { spec = result.Spec, specJson });
+            return Ok(new
+            {
+                spec = generationResult.Spec,
+                specJson,
+                validation = new
+                {
+                    isValid = true,
+                    errors = generationResult.Validation.Errors,
+                    warnings = generationResult.Validation.Warnings
+                },
+                repairs = generationResult.Repairs
+            });
         }
         catch (Exception ex)
         {
@@ -71,7 +91,6 @@ public class AIController : ControllerBase
         if (project == null)
             return NotFound(new { error = "Project not found." });
 
-        // Fetch current spec
         var currentSpecRecord = await _db.ProjectSpecs
             .Where(ps => ps.ProjectId == id)
             .OrderByDescending(ps => ps.Version)
@@ -82,23 +101,43 @@ public class AIController : ControllerBase
 
         try
         {
-            var result = await _specRepairService.EditWithRetryAsync(currentSpecRecord.SpecJson, request.Instruction);
+            var generationResult = await _specRepairService.EditWithRetryAsync(currentSpecRecord.SpecJson, request.Instruction);
 
-            if (!result.IsValid)
+            if (!generationResult.IsValid)
             {
-                _logger.LogWarning("Spec edit failed for project {ProjectId}: {Error}", id, result.Error);
-                return UnprocessableEntity(new { error = "Failed to edit spec.", details = result.Error });
+                _logger.LogWarning("Spec edit failed for project {ProjectId}: {Error}", id, generationResult.Error);
+                return UnprocessableEntity(new
+                {
+                    error = "Failed to produce a valid spec after edit.",
+                    validation = new
+                    {
+                        isValid = false,
+                        errors = generationResult.Validation.Errors,
+                        warnings = generationResult.Validation.Warnings
+                    }
+                });
             }
 
-            var specJson = JsonSerializer.Serialize(result.Spec, new JsonSerializerOptions
+            var specJson = JsonSerializer.Serialize(generationResult.Spec, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
             });
 
-            _logger.LogInformation("Spec edited for project {ProjectId}", id);
+            _logger.LogInformation("Spec edited for project {ProjectId}. Repairs: {RepairCount}", id, generationResult.Repairs.Count);
 
-            return Ok(new { spec = result.Spec, specJson });
+            return Ok(new
+            {
+                spec = generationResult.Spec,
+                specJson,
+                validation = new
+                {
+                    isValid = true,
+                    errors = generationResult.Validation.Errors,
+                    warnings = generationResult.Validation.Warnings
+                },
+                repairs = generationResult.Repairs
+            });
         }
         catch (Exception ex)
         {

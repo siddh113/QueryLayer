@@ -8,6 +8,8 @@ using QueryLayer.Api.Services.AI;
 using QueryLayer.Api.Services.Auth;
 using QueryLayer.Api.Services.DX;
 using QueryLayer.Api.Services.Runtime;
+using QueryLayer.Api.Services.Workflow;
+using QueryLayer.Api.Services.Workflow.Conditions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,6 +92,7 @@ builder.Services.AddScoped<KeyManagementService>();
 // AI Services
 builder.Services.AddHttpClient<AIService>();
 builder.Services.AddSingleton<PromptBuilder>();
+builder.Services.AddSingleton<ConditionSyntaxValidator>();
 builder.Services.AddSingleton<SpecValidator>();
 builder.Services.AddScoped<AIService>();
 builder.Services.AddScoped<SpecRepairService>();
@@ -97,6 +100,22 @@ builder.Services.AddScoped<SpecRepairService>();
 // DX Services
 builder.Services.AddSingleton<OpenApiGeneratorService>();
 builder.Services.AddSingleton<ApiExampleGenerator>();
+
+// Sprint 9: Workflow Condition Engine
+builder.Services.AddSingleton<RelatedRecordResolver>();
+builder.Services.AddSingleton<ConditionNormalizationService>();
+builder.Services.AddSingleton<QueryLayer.Api.Services.Workflow.Conditions.ConditionValidator>();
+builder.Services.AddSingleton<ConditionCompiler>();
+builder.Services.AddSingleton<ConditionPipeline>();
+
+// Sprint 8: Workflow + Trigger Engine
+builder.Services.AddSingleton<ConditionEvaluator>();
+builder.Services.AddScoped<JobQueueService>();
+builder.Services.AddScoped<TriggerService>();
+builder.Services.AddScoped<EventDispatcher>();
+builder.Services.AddScoped<ActionExecutor>();
+builder.Services.AddScoped<WorkflowEngine>();
+builder.Services.AddHostedService<JobWorker>();
 
 // Rate limiting: 100 requests/minute per IP on runtime API routes
 builder.Services.AddRateLimiter(options =>
@@ -148,6 +167,65 @@ using (var scope = app.Services.CreateScope())
 
     var platformAuth = scope.ServiceProvider.GetRequiredService<PlatformAuthService>();
     await platformAuth.EnsurePlatformTablesAsync();
+
+    // Sprint 8: ensure workflow tables exist
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await EnsureWorkflowTablesAsync(db);
+}
+
+static async Task EnsureWorkflowTablesAsync(AppDbContext db)
+{
+    await db.Database.ExecuteSqlRawAsync(@"
+        CREATE TABLE IF NOT EXISTS trigger_executions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id UUID NOT NULL,
+            trigger_name TEXT NOT NULL,
+            event TEXT NOT NULL,
+            condition_result BOOLEAN NOT NULL DEFAULT FALSE,
+            status TEXT NOT NULL DEFAULT 'pending',
+            error_message TEXT,
+            record_json JSONB,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            completed_at TIMESTAMPTZ
+        );
+
+        CREATE TABLE IF NOT EXISTS jobs (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id UUID NOT NULL,
+            trigger_execution_id UUID NOT NULL,
+            action_type TEXT NOT NULL,
+            action_json JSONB NOT NULL,
+            context_json JSONB NOT NULL,
+            status TEXT NOT NULL DEFAULT 'queued',
+            attempts INTEGER NOT NULL DEFAULT 0,
+            run_after TIMESTAMPTZ,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            completed_at TIMESTAMPTZ,
+            error_message TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS job_attempts (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            job_id UUID NOT NULL,
+            attempt_number INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            error_message TEXT,
+            attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS workflow_executions (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            project_id UUID NOT NULL,
+            entity TEXT NOT NULL,
+            record_id TEXT NOT NULL,
+            from_state TEXT NOT NULL,
+            to_state TEXT NOT NULL,
+            transition_name TEXT NOT NULL,
+            user_id UUID,
+            user_role TEXT,
+            executed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    ");
 }
 
 app.UseHttpsRedirection();

@@ -9,7 +9,8 @@ public class PostgresTypeMapper
         ["boolean"] = "boolean",
         ["uuid"] = "uuid",
         ["timestamp"] = "timestamptz",
-        ["text"] = "text"
+        ["text"] = "text",
+        ["decimal"] = "numeric"
     };
 
     public string Map(string specType)

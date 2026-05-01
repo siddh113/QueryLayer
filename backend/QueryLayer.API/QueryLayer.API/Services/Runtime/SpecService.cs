@@ -42,6 +42,9 @@ public class SpecService
         return spec;
     }
 
+    // Alias used by workflow services
+    public Task<BackendSpec?> GetSpecByProjectIdAsync(Guid projectId) => GetSpecAsync(projectId);
+
     public void InvalidateCache(Guid projectId)
     {
         _cache.Remove($"spec:{projectId}");

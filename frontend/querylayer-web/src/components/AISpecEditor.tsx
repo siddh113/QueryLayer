@@ -77,15 +77,17 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {!currentSpec && (
-        <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+        <div className="text-sm rounded-xl px-5 py-3.5"
+          style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.12)', color: '#fbbf24' }}
+        >
           No spec exists yet. Use the Generator tab to create one first.
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>
           Modification instruction
         </label>
         <textarea
@@ -93,49 +95,72 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
           onChange={(e) => setInstruction(e.target.value)}
           placeholder="Add a due_date timestamp field to Task and create a new Category entity with name field..."
           disabled={!currentSpec}
-          className="w-full h-24 text-sm rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y disabled:bg-gray-100 disabled:text-gray-400"
+          className="w-full h-28 text-sm rounded-xl p-4 resize-y focus:outline-none input-glow disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: 'rgba(7, 7, 14, 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: '#f0f0f5',
+          }}
         />
       </div>
 
       <button
         onClick={handleEdit}
         disabled={editing || !instruction.trim() || !currentSpec}
-        className="bg-purple-600 text-white text-sm px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
+        className="text-sm px-5 py-2.5 rounded-xl font-semibold btn-gradient disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {editing ? (
-          <span className="flex items-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Applying Changes...
-          </span>
-        ) : (
-          "Apply Changes"
-        )}
+        <span className="flex items-center gap-2">
+          {editing ? (
+            <>
+              <span className="animate-spin w-4 h-4 rounded-full"
+                style={{ border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }}
+              />
+              Applying Changes...
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Apply Changes
+            </>
+          )}
+        </span>
       </button>
 
       {error && (
-        <div className="text-sm rounded px-3 py-2 border text-red-600 bg-red-50 border-red-200">
+        <div className="text-sm rounded-xl px-5 py-3.5"
+          style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+        >
           {error}
         </div>
       )}
 
       {message && !error && (
-        <div className="text-sm rounded px-3 py-2 border text-green-700 bg-green-50 border-green-200">
+        <div className="text-sm rounded-xl px-5 py-3.5"
+          style={{ background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.12)', color: '#4ade80' }}
+        >
           {message}
         </div>
       )}
 
       {preview && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-gray-900">Preview (editable)</h3>
+              <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #06b6d4)' }} />
+              <h3 className="text-sm font-semibold" style={{ color: '#f0f0f5' }}>Preview (editable)</h3>
               {oldSpecJson && (
                 <button
                   onClick={() => setShowDiff(!showDiff)}
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  className="text-xs font-medium transition-colors duration-200 px-2.5 py-1 rounded-lg"
+                  style={{
+                    color: showDiff ? '#a5b4fc' : '#52525b',
+                    background: showDiff ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc'; }}
+                  onMouseLeave={(e) => { if (!showDiff) e.currentTarget.style.color = '#52525b'; }}
                 >
                   {showDiff ? "Hide diff" : "Show diff"}
                 </button>
@@ -144,31 +169,56 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
             <div className="flex gap-2">
               <button
                 onClick={() => { setPreview(null); setMessage(""); setShowDiff(false); }}
-                className="border border-gray-300 text-gray-700 text-sm px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"
+                className="text-sm px-4 py-2 rounded-xl font-medium transition-all duration-200"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  color: '#a1a1aa',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
               >
                 Discard
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="text-sm px-5 py-2 rounded-xl font-semibold btn-gradient disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Confirm & Save"}
+                <span>{saving ? "Saving..." : "Confirm & Save"}</span>
               </button>
             </div>
           </div>
 
           {showDiff && oldSpecJson && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-xs font-medium text-gray-500 mb-1">Current Spec</div>
-                <pre className="text-xs font-mono bg-red-950 text-red-300 rounded-lg p-3 border border-red-800 overflow-auto max-h-[300px]">
+                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: '#52525b' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#ef4444' }} />
+                  Current Spec
+                </div>
+                <pre className="text-xs font-mono rounded-xl p-4 overflow-auto max-h-[300px]"
+                  style={{
+                    background: 'rgba(127, 29, 29, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.1)',
+                    color: '#fca5a5',
+                  }}
+                >
                   {oldSpecJson}
                 </pre>
               </div>
               <div>
-                <div className="text-xs font-medium text-gray-500 mb-1">New Spec</div>
-                <pre className="text-xs font-mono bg-green-950 text-green-300 rounded-lg p-3 border border-green-800 overflow-auto max-h-[300px]">
+                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: '#52525b' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
+                  New Spec
+                </div>
+                <pre className="text-xs font-mono rounded-xl p-4 overflow-auto max-h-[300px]"
+                  style={{
+                    background: 'rgba(5, 46, 22, 0.15)',
+                    border: '1px solid rgba(34, 197, 94, 0.1)',
+                    color: '#86efac',
+                  }}
+                >
                   {preview}
                 </pre>
               </div>
@@ -179,7 +229,12 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
             value={preview}
             onChange={(e) => setPreview(e.target.value)}
             spellCheck={false}
-            className="w-full h-[400px] font-mono text-sm bg-gray-900 text-green-400 rounded-lg p-4 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full h-[420px] font-mono text-sm rounded-xl p-5 resize-y focus:outline-none input-glow"
+            style={{
+              background: 'rgba(7, 7, 14, 0.8)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              color: '#4ade80',
+            }}
           />
         </div>
       )}
