@@ -88,9 +88,9 @@ export default function ProjectDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 text-sm" style={{ color: '#52525b' }}>
+      <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
         <span className="animate-spin w-4 h-4 rounded-full"
-          style={{ border: '2px solid rgba(99, 102, 241, 0.15)', borderTopColor: '#6366f1' }}
+          style={{ border: '2px solid var(--border)', borderTopColor: 'var(--accent)' }}
         />
         Loading project...
       </div>
@@ -98,7 +98,7 @@ export default function ProjectDetailPage() {
   }
   if (error) return (
     <div className="text-sm px-5 py-3.5 rounded-xl"
-      style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+      style={{ background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)' }}
     >
       {error}
     </div>
@@ -122,23 +122,23 @@ export default function ProjectDetailPage() {
         <div className="flex items-center gap-4 mb-2">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
             style={{
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.08))',
-              color: '#a5b4fc',
-              border: '1px solid rgba(99, 102, 241, 0.15)',
+              background: 'var(--project-initial-bg)',
+              color: 'var(--project-initial-text)',
+              border: '1px solid var(--project-initial-border)',
             }}
           >
             {project.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#f0f0f5' }}>{project.name}</h1>
-            <p className="text-[11px] font-mono mt-0.5" style={{ color: '#3f3f46' }}>{project.id}</p>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>{project.name}</h1>
+            <p className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--text-faint)' }}>{project.id}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-8 pb-px overflow-x-auto"
-        style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}
+        style={{ borderBottom: '1px solid var(--border)' }}
       >
         {tabs.map((t) => (
           <button
@@ -146,15 +146,14 @@ export default function ProjectDetailPage() {
             onClick={() => setTab(t.key)}
             className="flex items-center gap-2 px-4 py-3 text-[13px] font-medium transition-all duration-200 whitespace-nowrap relative"
             style={{
-              color: tab === t.key ? '#a5b4fc' : '#52525b',
-              borderBottom: tab === t.key ? '2px solid transparent' : '2px solid transparent',
-              borderImage: tab === t.key ? 'linear-gradient(to right, #6366f1, #06b6d4) 1' : 'none',
+              color: tab === t.key ? 'var(--active-nav-text)' : 'var(--text-muted)',
+              borderBottom: tab === t.key ? '2px solid var(--accent)' : '2px solid transparent',
             }}
             onMouseEnter={(e) => {
-              if (tab !== t.key) e.currentTarget.style.color = '#a1a1aa';
+              if (tab !== t.key) e.currentTarget.style.color = 'var(--text-secondary)';
             }}
             onMouseLeave={(e) => {
-              if (tab !== t.key) e.currentTarget.style.color = '#52525b';
+              if (tab !== t.key) e.currentTarget.style.color = 'var(--text-muted)';
             }}
           >
             <span style={{ opacity: tab === t.key ? 1 : 0.6 }}>{tabIcons[t.key]}</span>
@@ -164,12 +163,10 @@ export default function ProjectDetailPage() {
       </div>
 
       {tab === "overview" && (
-        <div className="rounded-2xl glass-card p-7 max-w-2xl"
-          style={{ boxShadow: '0 0 30px rgba(0, 0, 0, 0.2)' }}
-        >
+        <div className="rounded-2xl glass-card p-7 max-w-2xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-1 h-5 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #06b6d4)' }} />
-            <h2 className="font-semibold text-[15px]" style={{ color: '#f0f0f5' }}>Project Info</h2>
+            <div className="w-1 h-5 rounded-full" style={{ background: 'var(--accent)' }} />
+            <h2 className="font-semibold text-[15px]" style={{ color: 'var(--section-title-color)' }}>Project Info</h2>
           </div>
           <dl className="space-y-5 text-sm">
             {[
@@ -179,22 +176,22 @@ export default function ProjectDetailPage() {
               { label: "Spec Version", value: specVersion ? `v${specVersion}` : "No spec uploaded" },
             ].map(({ label, value, mono }) => (
               <div key={label} className="flex items-start justify-between py-2"
-                style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}
+                style={{ borderBottom: '1px solid var(--border-subtle)' }}
               >
-                <dt className="font-medium" style={{ color: '#52525b' }}>{label}</dt>
-                <dd className={`${mono ? 'font-mono text-[13px]' : ''}`} style={{ color: '#e4e4e7' }}>
+                <dt className="font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</dt>
+                <dd className={`${mono ? 'font-mono text-[13px]' : ''}`} style={{ color: 'var(--text-primary)' }}>
                   {value}
                 </dd>
               </div>
             ))}
             <div className="flex items-start justify-between py-2">
-              <dt className="font-medium" style={{ color: '#52525b' }}>API Key (Project ID)</dt>
+              <dt className="font-medium" style={{ color: 'var(--text-secondary)' }}>API Key (Project ID)</dt>
               <dd className="flex items-center gap-3">
                 <code className="font-mono text-xs px-3 py-1.5 rounded-lg"
                   style={{
-                    background: 'rgba(7, 7, 14, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    color: '#e4e4e7',
+                    background: 'var(--code-bg)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {project.id}
@@ -202,9 +199,9 @@ export default function ProjectDetailPage() {
                 <button
                   onClick={() => navigator.clipboard.writeText(project.id)}
                   className="text-xs font-medium transition-colors duration-200"
-                  style={{ color: '#818cf8' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#818cf8'; }}
+                  style={{ color: 'var(--accent)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-light)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent)'; }}
                 >
                   Copy
                 </button>
@@ -223,14 +220,9 @@ export default function ProjectDetailPage() {
                 onClick={() => setAiSubTab(sub)}
                 className="px-4 py-2.5 text-[13px] font-medium rounded-xl transition-all duration-200"
                 style={{
-                  background: aiSubTab === sub
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.06))'
-                    : 'rgba(255, 255, 255, 0.03)',
-                  color: aiSubTab === sub ? '#a5b4fc' : '#52525b',
-                  border: aiSubTab === sub
-                    ? '1px solid rgba(99, 102, 241, 0.2)'
-                    : '1px solid rgba(255, 255, 255, 0.04)',
-                  boxShadow: aiSubTab === sub ? '0 0 12px rgba(99, 102, 241, 0.06)' : 'none',
+                  background: aiSubTab === sub ? 'var(--active-nav-bg)' : 'var(--bg-raised)',
+                  color: aiSubTab === sub ? 'var(--active-nav-text)' : 'var(--text-muted)',
+                  border: aiSubTab === sub ? '1px solid var(--border-active)' : '1px solid var(--border)',
                 }}
               >
                 {sub === "generate" ? "Generate Spec" : "Edit Spec"}
