@@ -55,7 +55,41 @@ static string ResolveConnectionString(string url)
     if (!lower.Contains("pooling="))
         npgsql += ";Pooling=false";
 
+    // Render free tier has no IPv6; resolve hostname to IPv4 to guarantee reachability.
+    // Safe because Trust Server Certificate=true is already set above.
+    npgsql = ResolveHostToIPv4(npgsql);
+
     return npgsql;
+}
+
+static string ResolveHostToIPv4(string connectionString)
+{
+    try
+    {
+        var parts = connectionString.Split(';');
+        for (int i = 0; i < parts.Length; i++)
+        {
+            var part = parts[i].Trim();
+            if (part.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
+            {
+                var host = part.Substring(5);
+                if (!System.Net.IPAddress.TryParse(host, out _))
+                {
+                    var addresses = System.Net.Dns.GetHostAddresses(host);
+                    var ipv4 = addresses.FirstOrDefault(a =>
+                        a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+                    if (ipv4 != null)
+                        parts[i] = $"Host={ipv4}";
+                }
+                break;
+            }
+        }
+        return string.Join(";", parts);
+    }
+    catch
+    {
+        return connectionString;
+    }
 }
 
 var connectionString = ResolveConnectionString(databaseUrl);
