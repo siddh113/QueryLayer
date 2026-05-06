@@ -154,7 +154,9 @@ public class SqlQueryBuilder
                 "boolean" => el.GetBoolean(),
                 "uuid" => Guid.Parse(el.GetString()!),
                 "timestamp" => DateTime.Parse(el.GetString()!),
-                _ => el.GetString()
+                "numeric" or "float" or "decimal" or "double" or "number" =>
+                    el.ValueKind == JsonValueKind.Number ? el.GetDecimal() : decimal.Parse(el.GetString()!),
+                _ => el.ValueKind == JsonValueKind.Number ? el.GetDecimal() : el.GetString()
             };
         }
         return value;
