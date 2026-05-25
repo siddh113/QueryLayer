@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { editSpec, updateSpec } from "../services/api";
 import type { BackendSpec } from "../types";
+import SchemaChangesModal from "./SchemaChangesModal";
+import SpecSaveProgressIndicator, { type SavePhase } from "./SpecSaveProgressIndicator";
 
 interface AISpecEditorProps {
   projectId: string;
@@ -18,6 +20,8 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [showDiff, setShowDiff] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [savePhase, setSavePhase] = useState<SavePhase>("idle");
 
   const oldSpecJson = currentSpec ? JSON.stringify(currentSpec, null, 2) : "";
 
@@ -30,53 +34,75 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
     setError("");
     setMessage("");
     setPreview(null);
+    setSavePhase("generating");
     setEditing(true);
     try {
       const result = await editSpec(projectId, instruction);
       setPreview(JSON.stringify(result.spec, null, 2));
-      setMessage("Spec updated. Review changes and save below.");
+      setMessage("Spec updated. Review changes, then confirm to preview schema changes.");
+      setSavePhase("idle");
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { error?: string; details?: string } } }).response?.data
           : undefined;
       setError(msg?.details || msg?.error || "Failed to edit spec.");
+      setSavePhase("error");
     } finally {
       setEditing(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleOpenModal = () => {
     if (!preview) return;
-    setError("");
-    let parsed: BackendSpec;
     try {
-      parsed = JSON.parse(preview);
+      JSON.parse(preview);
     } catch {
       setError("Invalid JSON in preview. Fix before saving.");
       return;
     }
+    setError("");
+    setSavePhase("previewing");
+    setShowModal(true);
+  };
 
+  const handleApply = async (editedSpec: BackendSpec) => {
     setSaving(true);
+    setSavePhase("applying");
     try {
-      const result = await updateSpec(projectId, parsed);
+      const result = await updateSpec(projectId, editedSpec);
+      setSavePhase("done");
       setMessage(`Spec saved (v${result.version}) and schema synchronized.`);
       setPreview(null);
       setInstruction("");
       setShowDiff(false);
-      onSpecSaved(parsed, result.version);
+      setShowModal(false);
+      onSpecSaved(editedSpec, result.version);
+      setTimeout(() => setSavePhase("idle"), 2000);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { error?: string; details?: string } } }).response?.data
           : undefined;
       setError(msg?.details || msg?.error || "Failed to save spec.");
+      setSavePhase("error");
+      setShowModal(false);
     } finally {
       setSaving(false);
     }
   };
 
   return (
+    <>
+    {showModal && preview && (
+      <SchemaChangesModal
+        projectId={projectId}
+        specJson={preview}
+        onApply={handleApply}
+        onBack={() => { setShowModal(false); setSavePhase("idle"); }}
+        isApplying={saving}
+      />
+    )}
     <div className="space-y-5">
       {!currentSpec && (
         <div className="text-sm rounded-xl px-5 py-3.5"
@@ -129,7 +155,9 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
         </span>
       </button>
 
-      {error && (
+      <SpecSaveProgressIndicator phase={savePhase} errorMessage={error} />
+
+      {error && savePhase !== "error" && (
         <div className="text-sm rounded-xl px-5 py-3.5"
           style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
         >
@@ -181,11 +209,11 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
                 Discard
               </button>
               <button
-                onClick={handleSave}
-                disabled={saving}
+                onClick={handleOpenModal}
+                disabled={saving || editing}
                 className="text-sm px-5 py-2 rounded-xl font-semibold btn-gradient disabled:opacity-50"
               >
-                <span>{saving ? "Saving..." : "Confirm & Save"}</span>
+                <span>Review & Save</span>
               </button>
             </div>
           </div>
@@ -239,5 +267,6 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
         </div>
       )}
     </div>
+    </>
   );
 }

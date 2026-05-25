@@ -124,6 +124,101 @@ public class SchemaController : ControllerBase
         });
     }
 
+    [HttpGet("{id}/schema/tables")]
+    public async Task<IActionResult> GetLiveSchema(Guid id)
+    {
+        var project = await _db.Projects.FindAsync(id);
+        if (project == null)
+            return NotFound(new { error = "Project not found" });
+
+        var projectSpec = await _db.ProjectSpecs
+            .Where(ps => ps.ProjectId == id)
+            .OrderByDescending(ps => ps.Version)
+            .FirstOrDefaultAsync();
+
+        if (projectSpec == null)
+            return Ok(new { tables = Array.Empty<object>() });
+
+        List<QueryLayer.Api.Models.Runtime.EntitySpec> entities;
+        try
+        {
+            var spec = _entityParser.Parse(projectSpec.SpecJson);
+            entities = spec.Entities;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse spec for live schema for project {ProjectId}", id);
+            return Ok(new { tables = Array.Empty<object>() });
+        }
+
+        var tables = new List<object>();
+        foreach (var entity in entities)
+        {
+            var tableName = entity.Table.ToLowerInvariant();
+            var exists = await _migrationService.TableExistsAsync(tableName);
+            var columns = exists
+                ? await _migrationService.GetExistingColumnsAsync(tableName)
+                : new List<TableColumnInfo>();
+
+            tables.Add(new
+            {
+                name = tableName,
+                entityName = entity.Name,
+                exists,
+                columns = columns.Select(c => new
+                {
+                    columnName = c.ColumnName,
+                    dataType = c.DataType,
+                    isNullable = c.IsNullable,
+                    maxLength = c.MaxLength
+                })
+            });
+        }
+
+        return Ok(new { tables });
+    }
+
+    [HttpPost("{id}/spec/preview")]
+    public async Task<IActionResult> PreviewSpec(Guid id, [FromBody] JsonElement specJson)
+    {
+        var project = await _db.Projects.FindAsync(id);
+        if (project == null)
+            return NotFound(new { error = "Project not found" });
+
+        var specString = specJson.GetRawText();
+
+        List<QueryLayer.Api.Models.Runtime.EntitySpec> entities;
+        try
+        {
+            var spec = _entityParser.Parse(specString);
+            entities = spec.Entities;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Spec parse failed during preview for project {ProjectId}", id);
+            return BadRequest(new { error = "Invalid spec", details = ex.Message });
+        }
+
+        try
+        {
+            var syncResult = await _syncValidator.ValidateAsync(entities);
+            var migrationSql = await _syncValidator.GenerateSyncStatements(entities);
+
+            return Ok(new
+            {
+                entities,
+                syncResult,
+                migrationSql,
+                hasChanges = migrationSql.Count > 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Spec preview failed for project {ProjectId}", id);
+            return StatusCode(500, new { error = "Preview failed", details = ex.Message });
+        }
+    }
+
     [HttpGet("{id}/schema/validate")]
     public async Task<IActionResult> ValidateSchema(Guid id)
     {

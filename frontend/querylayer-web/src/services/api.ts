@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Project, BackendSpec } from "../types";
+import type { Project, BackendSpec, LiveSchemaResponse, SpecPreviewResponse } from "../types";
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000",
@@ -75,6 +75,16 @@ export async function updateSpec(projectId: string, spec: BackendSpec) {
 export async function validateSchema(projectId: string) {
   const res = await api.get(`/projects/${projectId}/schema/validate`);
   return res.data;
+}
+
+export async function getLiveSchema(projectId: string): Promise<LiveSchemaResponse> {
+  const res = await api.get(`/projects/${projectId}/schema/tables`);
+  return res.data as LiveSchemaResponse;
+}
+
+export async function previewSpec(projectId: string, spec: BackendSpec): Promise<SpecPreviewResponse> {
+  const res = await api.post(`/projects/${projectId}/spec/preview`, spec);
+  return res.data as SpecPreviewResponse;
 }
 
 // AI Spec Generation

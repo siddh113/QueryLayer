@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateSpec, validateSchema } from "../services/api";
 import type { BackendSpec } from "../types";
+import SchemaChangesModal from "./SchemaChangesModal";
 
 interface SpecEditorProps {
   projectId: string;
@@ -18,28 +19,33 @@ export default function SpecEditor({ projectId, initialSpec, onSaved }: SpecEdit
   const [validating, setValidating] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [validationResult, setValidationResult] = useState<Record<string, unknown> | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const handleSave = async () => {
+  const handleOpenModal = () => {
     setMessage(null);
-    let parsed: BackendSpec;
     try {
-      parsed = JSON.parse(text);
+      JSON.parse(text);
     } catch {
       setMessage({ type: "error", text: "Invalid JSON" });
       return;
     }
+    setShowModal(true);
+  };
 
+  const handleApply = async (editedSpec: BackendSpec) => {
     setSaving(true);
     try {
-      const result = await updateSpec(projectId, parsed);
+      const result = await updateSpec(projectId, editedSpec);
       setMessage({ type: "success", text: `Spec saved (v${result.version})` });
-      onSaved(parsed, result.version);
+      setShowModal(false);
+      onSaved(editedSpec, result.version);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { error?: string; details?: string } } }).response?.data
           : undefined;
       setMessage({ type: "error", text: msg?.details || msg?.error || "Failed to save spec" });
+      setShowModal(false);
     } finally {
       setSaving(false);
     }
@@ -73,10 +79,20 @@ export default function SpecEditor({ projectId, initialSpec, onSaved }: SpecEdit
   };
 
   return (
+    <>
+    {showModal && (
+      <SchemaChangesModal
+        projectId={projectId}
+        specJson={text}
+        onApply={handleApply}
+        onBack={() => setShowModal(false)}
+        isApplying={saving}
+      />
+    )}
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <button
-          onClick={handleSave}
+          onClick={handleOpenModal}
           disabled={saving}
           className="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
@@ -125,5 +141,6 @@ export default function SpecEditor({ projectId, initialSpec, onSaved }: SpecEdit
         </div>
       )}
     </div>
+    </>
   );
 }

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { generateSpec, updateSpec } from "../services/api";
 import type { BackendSpec } from "../types";
+import SchemaChangesModal from "./SchemaChangesModal";
+import SpecSaveProgressIndicator, { type SavePhase } from "./SpecSaveProgressIndicator";
 
 interface AISpecGeneratorProps {
   projectId: string;
@@ -17,60 +19,84 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
   const [previewSpec, setPreviewSpec] = useState<BackendSpec | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [savePhase, setSavePhase] = useState<SavePhase>("idle");
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setError("");
     setMessage("");
     setPreview(null);
+    setSavePhase("generating");
     setGenerating(true);
     try {
       const result = await generateSpec(projectId, prompt);
       setPreview(JSON.stringify(result.spec, null, 2));
       setPreviewSpec(result.spec);
-      setMessage("Spec generated successfully. Review and save below.");
+      setMessage("Spec generated. Review below, then confirm to preview schema changes.");
+      setSavePhase("idle");
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { error?: string; details?: string } } }).response?.data
           : undefined;
       setError(msg?.details || msg?.error || "Failed to generate spec.");
+      setSavePhase("error");
     } finally {
       setGenerating(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleOpenModal = () => {
     if (!preview) return;
-    setError("");
-    let parsed: BackendSpec;
     try {
-      parsed = JSON.parse(preview);
+      JSON.parse(preview);
     } catch {
       setError("Invalid JSON in preview. Fix before saving.");
       return;
     }
+    setError("");
+    setSavePhase("previewing");
+    setShowModal(true);
+  };
 
+  const handleApply = async (editedSpec: BackendSpec) => {
     setSaving(true);
+    setSavePhase("applying");
     try {
-      const result = await updateSpec(projectId, parsed);
+      const result = await updateSpec(projectId, editedSpec);
+      setSavePhase("done");
       setMessage(`Spec saved (v${result.version}) and schema synchronized.`);
       setPreview(null);
       setPreviewSpec(null);
       setPrompt("");
-      onSpecSaved(parsed, result.version);
+      setShowModal(false);
+      onSpecSaved(editedSpec, result.version);
+      setTimeout(() => setSavePhase("idle"), 2000);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { error?: string; details?: string; detail?: string } } }).response?.data
           : undefined;
       setError(msg?.details || msg?.detail || msg?.error || "Failed to save spec.");
+      setSavePhase("error");
+      setShowModal(false);
     } finally {
       setSaving(false);
     }
   };
 
   return (
+    <>
+    {showModal && preview && (
+      <SchemaChangesModal
+        projectId={projectId}
+        specJson={preview}
+        onApply={handleApply}
+        onBack={() => { setShowModal(false); setSavePhase("idle"); }}
+        isApplying={saving}
+      />
+    )}
     <div className="space-y-5">
       <div>
         <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>
@@ -93,6 +119,7 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
         onClick={handleGenerate}
         disabled={generating || !prompt.trim()}
         className="text-sm px-5 py-2.5 rounded-xl font-semibold btn-gradient disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ marginBottom: savePhase !== "idle" ? "0" : undefined }}
       >
         <span className="flex items-center gap-2">
           {generating ? (
@@ -113,7 +140,9 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
         </span>
       </button>
 
-      {error && (
+      <SpecSaveProgressIndicator phase={savePhase} errorMessage={error} />
+
+      {error && savePhase !== "error" && (
         <div className="text-sm rounded-xl px-5 py-3.5"
           style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
         >
@@ -151,11 +180,11 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
                 Discard
               </button>
               <button
-                onClick={handleSave}
-                disabled={saving}
+                onClick={handleOpenModal}
+                disabled={saving || generating}
                 className="text-sm px-5 py-2 rounded-xl font-semibold btn-gradient disabled:opacity-50"
               >
-                <span>{saving ? "Saving..." : "Confirm & Save"}</span>
+                <span>Review & Save</span>
               </button>
             </div>
           </div>
@@ -173,5 +202,6 @@ export default function AISpecGenerator({ projectId, onSpecSaved }: AISpecGenera
         </div>
       )}
     </div>
+    </>
   );
 }

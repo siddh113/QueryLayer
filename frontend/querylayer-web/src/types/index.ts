@@ -63,3 +63,42 @@ export interface ApiError {
   error: string;
   details?: string;
 }
+
+export interface LiveColumnInfo {
+  columnName: string;
+  dataType: string;
+  isNullable: boolean;
+  maxLength: number | null;
+}
+
+export interface LiveTableInfo {
+  name: string;
+  entityName: string | null;
+  exists: boolean;
+  columns: LiveColumnInfo[];
+}
+
+export interface LiveSchemaResponse {
+  tables: LiveTableInfo[];
+}
+
+export interface ColumnDiff {
+  table: string;
+  column: string;
+  detail: string;
+}
+
+export interface SchemaSyncResult {
+  isInSync: boolean;
+  missingTables: string[];
+  newColumns: ColumnDiff[];
+  extraColumns: ColumnDiff[];
+  typeMismatches: ColumnDiff[];
+}
+
+export interface SpecPreviewResponse {
+  entities: EntitySpec[];
+  syncResult: SchemaSyncResult;
+  migrationSql: string[];
+  hasChanges: boolean;
+}

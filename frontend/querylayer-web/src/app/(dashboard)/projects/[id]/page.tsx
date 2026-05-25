@@ -11,9 +11,10 @@ import AISpecEditor from "../../../../components/AISpecEditor";
 import ApiExamplesPanel from "../../../../components/ApiExamplesPanel";
 import ProjectKeysPanel from "../../../../components/ProjectKeysPanel";
 import FrontendIntegrationGuide from "../../../../components/FrontendIntegrationGuide";
+import DatabaseSchemaViewer from "../../../../components/DatabaseSchemaViewer";
 import type { Project, BackendSpec } from "../../../../types";
 
-type Tab = "overview" | "ai" | "spec" | "explorer" | "examples" | "keys" | "integration";
+type Tab = "overview" | "ai" | "spec" | "database" | "explorer" | "examples" | "keys" | "integration";
 
 const tabIcons: Record<Tab, React.ReactNode> = {
   overview: (
@@ -49,6 +50,13 @@ const tabIcons: Record<Tab, React.ReactNode> = {
   integration: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+    </svg>
+  ),
+  database: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
     </svg>
   ),
 };
@@ -109,6 +117,7 @@ export default function ProjectDetailPage() {
     { key: "overview", label: "Overview" },
     { key: "ai", label: "AI Assistant" },
     { key: "spec", label: "Backend Spec" },
+    { key: "database", label: "Database" },
     { key: "explorer", label: "API Explorer" },
     { key: "examples", label: "Code Examples" },
     { key: "keys", label: "API Keys" },
@@ -262,6 +271,10 @@ export default function ProjectDetailPage() {
             setSpecVersion(version);
           }}
         />
+      )}
+
+      {tab === "database" && (
+        <DatabaseSchemaViewer projectId={project.id} />
       )}
 
       {tab === "explorer" && (
