@@ -24,3 +24,10 @@ Thumbs.db
 
 # Secrets
 **/launchSettings.json
+**/appsettings.Development.json
+**/appsettings.*.json
+
+# Claude Code files
+.claude/
+**/CLAUDE.md
+claude.md
