@@ -1,0 +1,18 @@
+Build a subscription system with the following behavior:
+
+- Users subscribe to a plan and start in an "active" state
+- If a payment attempt fails while the subscription is active, the subscription must transition to "past_due"
+- After the subscription becomes "past_due", wait 24 hours and retry payment
+- When retrying payment, the subscription enters "retrying_payment"
+- If the retry payment succeeds, the subscription returns to "active"
+- If the retry payment fails, the subscription transitions to "cancelled"
+- When a subscription is cancelled, send a webhook notification to the user
+
+Requirements:
+- Use a workflow with states: active, past_due, retrying_payment, cancelled
+- Use triggers to handle payment attempt results
+- Use conditions to distinguish between first failure and retry failure
+- Ensure update actions target the correct subscription using subscription_id
+- Include delay action for 24 hours before retry
+- Do not leave any required fields empty
+- Ensure all transitions have matching workflow_transition endpoints
