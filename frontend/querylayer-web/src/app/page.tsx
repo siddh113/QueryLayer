@@ -20,12 +20,12 @@ export default function HomePage() {
         <div className="relative">
           <div className="w-10 h-10 rounded-xl border-2 border-transparent animate-spin"
             style={{
-              borderImage: 'linear-gradient(135deg, #6366f1, #06b6d4) 1',
+              borderImage: 'linear-gradient(135deg, #FF6B4A, #6D5DFC) 1',
               borderRadius: '12px',
             }}
           />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full" style={{ background: 'linear-gradient(135deg, #6366f1, #06b6d4)' }} />
+            <div className="w-3 h-3 rounded-full" style={{ background: 'linear-gradient(135deg, #FF6B4A, #6D5DFC)' }} />
           </div>
         </div>
         <span className="text-sm tracking-wide" style={{ color: 'var(--text-muted)' }}>Loading...</span>

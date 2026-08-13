@@ -84,7 +84,7 @@ export default function ProjectCard({ project, onDeleted }: ProjectCardProps) {
         {/* Hover gradient glow */}
         <div
           className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"
-          style={{ background: 'radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent)', filter: 'blur(16px)' }}
+          style={{ background: 'radial-gradient(circle, rgba(255, 107, 74, 0.4), transparent)', filter: 'blur(16px)' }}
         />
 
         <div className="relative">

@@ -106,14 +106,14 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
     <div className="space-y-5">
       {!currentSpec && (
         <div className="text-sm rounded-xl px-5 py-3.5"
-          style={{ background: 'rgba(245, 158, 11, 0.06)', border: '1px solid rgba(245, 158, 11, 0.12)', color: '#fbbf24' }}
+          style={{ background: 'var(--warning-bg)', border: '1px solid var(--warning-border)', color: 'var(--warning-text)' }}
         >
           No spec exists yet. Use the Generator tab to create one first.
         </div>
       )}
 
       <div>
-        <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>
+        <label className="block text-[13px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
           Modification instruction
         </label>
         <textarea
@@ -123,9 +123,9 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
           disabled={!currentSpec}
           className="w-full h-28 text-sm rounded-xl p-4 resize-y focus:outline-none input-glow disabled:opacity-40 disabled:cursor-not-allowed"
           style={{
-            background: 'rgba(7, 7, 14, 0.6)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: '#f0f0f5',
+            background: 'var(--input-bg)',
+            border: '1px solid var(--input-border)',
+            color: 'var(--text-primary)',
           }}
         />
       </div>
@@ -139,7 +139,7 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
           {editing ? (
             <>
               <span className="animate-spin w-4 h-4 rounded-full"
-                style={{ border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }}
+                style={{ border: '2px solid currentColor', borderTopColor: 'transparent', opacity: 0.85 }}
               />
               Applying Changes...
             </>
@@ -159,7 +159,7 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
 
       {error && savePhase !== "error" && (
         <div className="text-sm rounded-xl px-5 py-3.5"
-          style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+          style={{ background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)' }}
         >
           {error}
         </div>
@@ -167,7 +167,7 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
 
       {message && !error && (
         <div className="text-sm rounded-xl px-5 py-3.5"
-          style={{ background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.12)', color: '#4ade80' }}
+          style={{ background: 'var(--success-bg)', border: '1px solid var(--success-border)', color: 'var(--success-text)' }}
         >
           {message}
         </div>
@@ -177,18 +177,18 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #06b6d4)' }} />
-              <h3 className="text-sm font-semibold" style={{ color: '#f0f0f5' }}>Preview (editable)</h3>
+              <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #FF6B4A, #6D5DFC)' }} />
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Preview (editable)</h3>
               {oldSpecJson && (
                 <button
                   onClick={() => setShowDiff(!showDiff)}
                   className="text-xs font-medium transition-colors duration-200 px-2.5 py-1 rounded-lg"
                   style={{
-                    color: showDiff ? '#a5b4fc' : '#52525b',
-                    background: showDiff ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
+                    color: showDiff ? 'var(--accent-cyan-light)' : 'var(--text-muted)',
+                    background: showDiff ? 'var(--glow-cyan)' : 'transparent',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc'; }}
-                  onMouseLeave={(e) => { if (!showDiff) e.currentTarget.style.color = '#52525b'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-cyan-light)'; }}
+                  onMouseLeave={(e) => { if (!showDiff) e.currentTarget.style.color = 'var(--text-muted)'; }}
                 >
                   {showDiff ? "Hide diff" : "Show diff"}
                 </button>
@@ -199,12 +199,12 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
                 onClick={() => { setPreview(null); setMessage(""); setShowDiff(false); }}
                 className="text-sm px-4 py-2 rounded-xl font-medium transition-all duration-200"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  color: '#a1a1aa',
+                  background: 'var(--hover-nav-bg)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-muted)',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--hover-nav-bg)'; }}
               >
                 Discard
               </button>
@@ -221,30 +221,30 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
           {showDiff && oldSpecJson && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: '#52525b' }}>
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#ef4444' }} />
+                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: 'var(--danger)' }} />
                   Current Spec
                 </div>
                 <pre className="text-xs font-mono rounded-xl p-4 overflow-auto max-h-[300px]"
                   style={{
-                    background: 'rgba(127, 29, 29, 0.08)',
-                    border: '1px solid rgba(239, 68, 68, 0.1)',
-                    color: '#fca5a5',
+                    background: 'var(--diff-old-bg)',
+                    border: '1px solid var(--diff-old-border)',
+                    color: 'var(--diff-old-text)',
                   }}
                 >
                   {oldSpecJson}
                 </pre>
               </div>
               <div>
-                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: '#52525b' }}>
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }} />
+                <div className="text-xs font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+                  <div className="w-2 h-2 rounded-full" style={{ background: 'var(--success)' }} />
                   New Spec
                 </div>
                 <pre className="text-xs font-mono rounded-xl p-4 overflow-auto max-h-[300px]"
                   style={{
-                    background: 'rgba(5, 46, 22, 0.15)',
-                    border: '1px solid rgba(34, 197, 94, 0.1)',
-                    color: '#86efac',
+                    background: 'var(--diff-new-bg)',
+                    border: '1px solid var(--diff-new-border)',
+                    color: 'var(--diff-new-text)',
                   }}
                 >
                   {preview}
@@ -259,9 +259,9 @@ export default function AISpecEditor({ projectId, currentSpec, onSpecSaved }: AI
             spellCheck={false}
             className="w-full h-[420px] font-mono text-sm rounded-xl p-5 resize-y focus:outline-none input-glow"
             style={{
-              background: 'rgba(7, 7, 14, 0.8)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              color: '#4ade80',
+              background: 'var(--code-bg)',
+              border: '1px solid var(--border)',
+              color: 'var(--success-text)',
             }}
           />
         </div>

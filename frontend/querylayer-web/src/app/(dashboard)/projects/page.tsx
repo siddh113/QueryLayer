@@ -58,14 +58,14 @@ export default function ProjectsPage() {
         <div className="rounded-2xl p-10 glass-card relative overflow-hidden">
           {/* Background glow */}
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-30"
-            style={{ background: 'radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent)', filter: 'blur(40px)' }}
+            style={{ background: 'radial-gradient(circle, rgba(255, 107, 74, 0.12), transparent)', filter: 'blur(40px)' }}
           />
 
           <div className="relative">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
-              style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.12)' }}
+              style={{ background: 'rgba(255, 107, 74, 0.08)', border: '1px solid rgba(255, 107, 74, 0.12)' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8F7CF7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
               </svg>
             </div>
@@ -77,10 +77,10 @@ export default function ProjectsPage() {
 
             <ol className="space-y-4 mb-8">
               {[
-                { step: "1", title: "Create a project", desc: "Give it a name to get started.", color: '#6366f1' },
-                { step: "2", title: "Describe your backend", desc: "Use AI to generate a spec from plain English.", color: '#818cf8' },
-                { step: "3", title: "Save the spec", desc: "Tables are created and APIs go live instantly.", color: '#a5b4fc' },
-                { step: "4", title: "Test your API", desc: "Use the API Explorer to run requests.", color: '#06b6d4' },
+                { step: "1", title: "Create a project", desc: "Give it a name to get started.", color: '#FF6B4A' },
+                { step: "2", title: "Describe your backend", desc: "Use AI to generate a spec from plain English.", color: '#8F7CF7' },
+                { step: "3", title: "Save the spec", desc: "Tables are created and APIs go live instantly.", color: '#B7A9FF' },
+                { step: "4", title: "Test your API", desc: "Use the API Explorer to run requests.", color: '#6D5DFC' },
               ].map(({ step, title, desc, color }) => (
                 <li key={step} className="flex gap-4 items-start">
                   <span className="flex-shrink-0 w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center mt-0.5"

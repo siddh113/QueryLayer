@@ -79,7 +79,7 @@ export default function SchemaChangesModal({
         position: "fixed",
         inset: 0,
         zIndex: 50,
-        background: "rgba(0, 0, 0, 0.75)",
+        background: "var(--overlay-bg)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -88,8 +88,8 @@ export default function SchemaChangesModal({
     >
       <div
         style={{
-          background: "var(--bg-raised, #0f0f1a)",
-          border: "1px solid var(--border, rgba(255,255,255,0.09))",
+          background: "var(--bg-raised)",
+          border: "1px solid var(--border)",
           borderRadius: "20px",
           width: "100%",
           maxWidth: "780px",
@@ -97,13 +97,14 @@ export default function SchemaChangesModal({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
         }}
       >
         {/* Modal header */}
         <div
           style={{
             padding: "20px 24px",
-            borderBottom: "1px solid rgba(255,255,255,0.07)",
+            borderBottom: "1px solid var(--border)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -112,24 +113,24 @@ export default function SchemaChangesModal({
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: "rgba(99, 102, 241, 0.12)", border: "1px solid rgba(99, 102, 241, 0.2)" }}
+              style={{ background: "rgba(255, 107, 74, 0.12)", border: "1px solid rgba(255, 107, 74, 0.2)" }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-semibold" style={{ color: "#f0f0f5" }}>Review Schema Changes</h2>
-              <p className="text-[11px]" style={{ color: "#52525b" }}>Review and edit fields before applying to the database</p>
+              <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Review Schema Changes</h2>
+              <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Review and edit fields before applying to the database</p>
             </div>
           </div>
           <button
             onClick={onBack}
             className="text-xs px-3 py-1.5 rounded-lg transition-all duration-200"
-            style={{ color: "#52525b", background: "rgba(255,255,255,0.03)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#a1a1aa"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "#52525b"; }}
+            style={{ color: "var(--text-muted)", background: "var(--hover-nav-bg)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
           >
             ✕
           </button>
@@ -138,9 +139,9 @@ export default function SchemaChangesModal({
         {/* Modal body */}
         <div style={{ overflowY: "auto", padding: "20px 24px", flex: 1 }}>
           {loading && (
-            <div className="flex items-center gap-3 py-8 justify-center text-sm" style={{ color: "#52525b" }}>
+            <div className="flex items-center gap-3 py-8 justify-center text-sm" style={{ color: "var(--text-muted)" }}>
               <span className="animate-spin w-4 h-4 rounded-full"
-                style={{ border: "2px solid rgba(255,255,255,0.08)", borderTopColor: "#818cf8" }}
+                style={{ border: "2px solid var(--border)", borderTopColor: "var(--accent-cyan)" }}
               />
               Analyzing schema changes...
             </div>
@@ -148,7 +149,7 @@ export default function SchemaChangesModal({
 
           {loadError && (
             <div className="text-sm rounded-xl px-5 py-3.5"
-              style={{ background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.15)", color: "#f87171" }}
+              style={{ background: "var(--error-bg)", border: "1px solid var(--error-border)", color: "var(--error-text)" }}
             >
               {loadError}
             </div>
@@ -159,12 +160,12 @@ export default function SchemaChangesModal({
               {/* Changes summary */}
               {!preview.hasChanges ? (
                 <div className="rounded-xl px-5 py-3.5 flex items-center gap-3"
-                  style={{ background: "rgba(34, 197, 94, 0.06)", border: "1px solid rgba(34, 197, 94, 0.12)" }}
+                  style={{ background: "var(--success-bg)", border: "1px solid var(--success-border)" }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  <span className="text-sm" style={{ color: "#4ade80" }}>
+                  <span className="text-sm" style={{ color: "var(--success-text)" }}>
                     Schema already in sync — no migrations needed. Saving will update the spec version.
                   </span>
                 </div>
@@ -173,9 +174,9 @@ export default function SchemaChangesModal({
                   {preview.syncResult.missingTables.length > 0 && (
                     <ChangesSection
                       title="New Tables"
-                      color="#818cf8"
-                      bgColor="rgba(99, 102, 241, 0.06)"
-                      borderColor="rgba(99, 102, 241, 0.15)"
+                      color="var(--accent-hover)"
+                      bgColor="var(--glow-cyan)"
+                      borderColor="rgba(255, 107, 74, 0.2)"
                       items={preview.syncResult.missingTables.map((t) => ({
                         primary: t,
                         secondary: "will be created",
@@ -197,9 +198,9 @@ export default function SchemaChangesModal({
                   {preview.syncResult.typeMismatches.length > 0 && (
                     <ChangesSection
                       title="Type Changes"
-                      color="#f59e0b"
-                      bgColor="rgba(245, 158, 11, 0.06)"
-                      borderColor="rgba(245, 158, 11, 0.15)"
+                      color="var(--warning-text)"
+                      bgColor="var(--warning-bg)"
+                      borderColor="var(--warning-border)"
                       items={preview.syncResult.typeMismatches.map((c) => ({
                         primary: `${c.table}.${c.column}`,
                         secondary: c.detail,
@@ -209,9 +210,9 @@ export default function SchemaChangesModal({
                   {preview.syncResult.extraColumns.length > 0 && (
                     <ChangesSection
                       title="Extra DB Columns (not in spec)"
-                      color="#52525b"
-                      bgColor="rgba(255, 255, 255, 0.02)"
-                      borderColor="rgba(255, 255, 255, 0.06)"
+                      color="var(--text-faint)"
+                      bgColor="var(--hover-nav-bg)"
+                      borderColor="var(--border-subtle)"
                       items={preview.syncResult.extraColumns.map((c) => ({
                         primary: `${c.table}.${c.column}`,
                         secondary: "exists in DB, not in spec — will be left as-is",
@@ -225,22 +226,22 @@ export default function SchemaChangesModal({
               {editableEntities.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(to bottom, #6366f1, #06b6d4)" }} />
-                    <h3 className="text-[13px] font-semibold" style={{ color: "#f0f0f5" }}>Edit Fields</h3>
-                    <span className="text-[11px]" style={{ color: "#52525b" }}>Changes apply before saving to DB</span>
+                    <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(to bottom, #FF6B4A, #6D5DFC)" }} />
+                    <h3 className="text-[13px] font-semibold" style={{ color: "var(--text-primary)" }}>Edit Fields</h3>
+                    <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>Changes apply before saving to DB</span>
                   </div>
                   <div className="space-y-3">
                     {editableEntities.map((entity, ei) => (
                       <div key={ei} className="rounded-xl overflow-hidden"
-                        style={{ border: "1px solid rgba(255,255,255,0.07)" }}
+                        style={{ border: "1px solid var(--border)" }}
                       >
                         <div className="px-4 py-2.5 text-[12px] font-semibold"
-                          style={{ background: "rgba(255,255,255,0.03)", color: "#a5b4fc", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                          style={{ background: "var(--bg-hover)", color: "var(--accent-cyan-light)", borderBottom: "1px solid var(--border-subtle)" }}
                         >
-                          {entity.name} <span style={{ color: "#3f3f5a", fontWeight: 400 }}>({entity.table})</span>
+                          {entity.name} <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>({entity.table})</span>
                         </div>
                         <div className="grid px-4 py-2 text-[11px] font-medium uppercase tracking-wider"
-                          style={{ gridTemplateColumns: "2fr 1.5fr 80px", color: "#3f3f5a", borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                          style={{ gridTemplateColumns: "2fr 1.5fr 80px", color: "var(--text-faint)", borderBottom: "1px solid var(--border-subtle)" }}
                         >
                           <span>Field Name</span><span>Type</span><span>Required</span>
                         </div>
@@ -248,7 +249,7 @@ export default function SchemaChangesModal({
                           <div key={fi} className="grid px-4 py-2 items-center gap-2"
                             style={{
                               gridTemplateColumns: "2fr 1.5fr 80px",
-                              borderBottom: fi < entity.fields.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
+                              borderBottom: fi < entity.fields.length - 1 ? "1px solid var(--border-subtle)" : "none",
                             }}
                           >
                             <input
@@ -258,9 +259,9 @@ export default function SchemaChangesModal({
                               disabled={field.primary}
                               className="text-xs font-mono rounded-lg px-2.5 py-1.5 focus:outline-none"
                               style={{
-                                background: field.primary ? "transparent" : "rgba(255,255,255,0.04)",
-                                border: field.primary ? "none" : "1px solid rgba(255,255,255,0.08)",
-                                color: field.primary ? "#52525b" : "#e4e4f0",
+                                background: field.primary ? "transparent" : "var(--input-bg)",
+                                border: field.primary ? "none" : "1px solid var(--input-border)",
+                                color: field.primary ? "var(--text-faint)" : "var(--text-primary)",
                                 cursor: field.primary ? "default" : "text",
                               }}
                             />
@@ -270,14 +271,14 @@ export default function SchemaChangesModal({
                               disabled={field.primary}
                               className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
                               style={{
-                                background: field.primary ? "transparent" : "rgba(255,255,255,0.04)",
-                                border: field.primary ? "none" : "1px solid rgba(255,255,255,0.08)",
-                                color: field.primary ? "#52525b" : "#a5b4fc",
+                                background: field.primary ? "transparent" : "var(--input-bg)",
+                                border: field.primary ? "none" : "1px solid var(--input-border)",
+                                color: field.primary ? "var(--text-faint)" : "var(--accent-cyan-light)",
                                 cursor: field.primary ? "default" : "pointer",
                               }}
                             >
                               {FIELD_TYPES.map((t) => (
-                                <option key={t} value={t} style={{ background: "#0f0f1a" }}>{t}</option>
+                                <option key={t} value={t} style={{ background: "var(--bg-raised)", color: "var(--text-primary)" }}>{t}</option>
                               ))}
                             </select>
                             <div className="flex justify-start pl-2">
@@ -286,7 +287,7 @@ export default function SchemaChangesModal({
                                 checked={!!field.required}
                                 onChange={(e) => updateField(ei, fi, "required", e.target.checked)}
                                 disabled={field.primary}
-                                style={{ accentColor: "#818cf8", cursor: field.primary ? "default" : "pointer" }}
+                                style={{ accentColor: "var(--accent-cyan)", cursor: field.primary ? "default" : "pointer" }}
                               />
                             </div>
                           </div>
@@ -303,9 +304,9 @@ export default function SchemaChangesModal({
                   <button
                     onClick={() => setShowSql(!showSql)}
                     className="flex items-center gap-2 text-xs font-medium transition-colors duration-200"
-                    style={{ color: showSql ? "#a5b4fc" : "#52525b" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#a5b4fc"; }}
-                    onMouseLeave={(e) => { if (!showSql) e.currentTarget.style.color = "#52525b"; }}
+                    style={{ color: showSql ? "var(--accent-cyan-light)" : "var(--text-muted)" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "var(--accent-cyan-light)"; }}
+                    onMouseLeave={(e) => { if (!showSql) e.currentTarget.style.color = "var(--text-muted)"; }}
                   >
                     <svg
                       width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -320,9 +321,9 @@ export default function SchemaChangesModal({
                       className="mt-2 text-[11px] font-mono rounded-xl p-4 overflow-auto"
                       style={{
                         maxHeight: "200px",
-                        background: "rgba(7, 7, 14, 0.8)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        color: "#4ade80",
+                        background: "var(--code-bg)",
+                        border: "1px solid var(--border)",
+                        color: "var(--success-text)",
                         lineHeight: "1.6",
                       }}
                     >
@@ -339,7 +340,7 @@ export default function SchemaChangesModal({
         <div
           style={{
             padding: "16px 24px",
-            borderTop: "1px solid rgba(255,255,255,0.07)",
+            borderTop: "1px solid var(--border)",
             display: "flex",
             justifyContent: "flex-end",
             gap: "10px",
@@ -351,12 +352,12 @@ export default function SchemaChangesModal({
             disabled={isApplying}
             className="text-sm px-5 py-2.5 rounded-xl font-medium transition-all duration-200"
             style={{
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              color: "#a1a1aa",
+              background: "var(--hover-nav-bg)",
+              border: "1px solid var(--border)",
+              color: "var(--text-muted)",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-hover)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--hover-nav-bg)"; }}
           >
             ← Edit Spec
           </button>
@@ -369,7 +370,7 @@ export default function SchemaChangesModal({
               {isApplying ? (
                 <>
                   <span className="animate-spin w-4 h-4 rounded-full"
-                    style={{ border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white" }}
+                    style={{ border: "2px solid currentColor", borderTopColor: "transparent", opacity: 0.85 }}
                   />
                   Applying...
                 </>
@@ -410,8 +411,8 @@ function ChangesSection({
       <div className="space-y-1.5">
         {items.map((item, i) => (
           <div key={i} className="flex items-center justify-between text-xs">
-            <span className="font-mono" style={{ color: "#e4e4f0" }}>{item.primary}</span>
-            <span style={{ color: "#52525b" }}>{item.secondary}</span>
+            <span className="font-mono" style={{ color: "var(--text-secondary)" }}>{item.primary}</span>
+            <span style={{ color: "var(--text-muted)" }}>{item.secondary}</span>
           </div>
         ))}
       </div>

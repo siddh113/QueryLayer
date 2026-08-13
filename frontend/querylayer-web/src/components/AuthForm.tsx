@@ -33,14 +33,14 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden noise-bg"
-      style={{ background: '#07070e' }}
+      style={{ background: 'var(--bg-deep)' }}
     >
       {/* Background glow effects */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08), transparent 70%)', filter: 'blur(60px)' }}
+        style={{ background: 'radial-gradient(circle, rgba(255, 107, 74, 0.14), transparent 70%)', filter: 'blur(60px)' }}
       />
       <div className="absolute bottom-1/4 right-1/3 w-80 h-80 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(6, 182, 212, 0.05), transparent 70%)', filter: 'blur(60px)' }}
+        style={{ background: 'radial-gradient(circle, rgba(109, 93, 252, 0.1), transparent 70%)', filter: 'blur(60px)' }}
       />
 
       <div className="w-full max-w-sm fade-in relative z-10">
@@ -48,31 +48,31 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', boxShadow: '0 0 24px rgba(99, 102, 241, 0.25)' }}
+              style={{ background: 'linear-gradient(135deg, #FF6B4A, #6D5DFC)', boxShadow: '0 0 24px rgba(255, 107, 74, 0.25)' }}
             >
               <span className="text-white">Q</span>
             </div>
           </div>
           <h1 className="text-xl font-bold gradient-text-hero mb-2">QueryLayer</h1>
-          <p className="text-sm" style={{ color: '#52525b' }}>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             {mode === "login" ? "Welcome back. Sign in to continue." : "Create your account to get started."}
           </p>
         </div>
 
         {/* Card */}
         <div className="rounded-2xl p-7 space-y-5 glass-card"
-          style={{ boxShadow: '0 0 40px rgba(0, 0, 0, 0.4), 0 0 80px rgba(99, 102, 241, 0.04)' }}
+          style={{ boxShadow: '0 0 60px var(--glow-cyan), 0 0 30px var(--glow-violet)' }}
         >
           {error && (
             <div className="text-sm px-4 py-3 rounded-xl"
-              style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+              style={{ background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)' }}
             >
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>Email</label>
+            <label className="block text-[13px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Email</label>
             <input
               type="email"
               value={email}
@@ -81,15 +81,15 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               placeholder="you@example.com"
               className="w-full rounded-xl px-4 py-2.5 text-sm input-glow focus:outline-none"
               style={{
-                background: 'rgba(7, 7, 14, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#f0f0f5',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--input-border)',
+                color: 'var(--text-primary)',
               }}
             />
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>Password</label>
+            <label className="block text-[13px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Password</label>
             <input
               type="password"
               value={password}
@@ -98,9 +98,9 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               placeholder="Enter your password"
               className="w-full rounded-xl px-4 py-2.5 text-sm input-glow focus:outline-none"
               style={{
-                background: 'rgba(7, 7, 14, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                color: '#f0f0f5',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--input-border)',
+                color: 'var(--text-primary)',
               }}
             />
           </div>
@@ -115,7 +115,7 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               {loading ? (
                 <>
                   <span className="animate-spin w-4 h-4 rounded-full"
-                    style={{ border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }}
+                    style={{ border: '2px solid currentColor', borderTopColor: 'transparent', opacity: 0.85 }}
                   />
                   Please wait...
                 </>
@@ -125,14 +125,14 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
             </span>
           </button>
 
-          <p className="text-center text-[13px]" style={{ color: '#52525b' }}>
+          <p className="text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
             {mode === "login" ? (
               <>
                 No account?{" "}
                 <Link href="/signup" className="font-medium transition-colors duration-200"
-                  style={{ color: '#818cf8' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#818cf8'; }}
+                  style={{ color: 'var(--accent-cyan)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-cyan-light)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-cyan)'; }}
                 >
                   Sign up
                 </Link>
@@ -141,9 +141,9 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
               <>
                 Have an account?{" "}
                 <Link href="/login" className="font-medium transition-colors duration-200"
-                  style={{ color: '#818cf8' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#a5b4fc'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#818cf8'; }}
+                  style={{ color: 'var(--accent-cyan)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-cyan-light)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--accent-cyan)'; }}
                 >
                   Sign in
                 </Link>

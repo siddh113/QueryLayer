@@ -72,7 +72,7 @@ export default function Sidebar() {
       <div className="px-5 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
+          style={{ background: 'linear-gradient(135deg, #FF6B4A, #6D5DFC)' }}
         >
           <span className="text-white">Q</span>
         </div>
@@ -118,7 +118,7 @@ export default function Sidebar() {
                 {active && (
                   <div
                     className="ml-auto w-1.5 h-1.5 rounded-full"
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #06b6d4)' }}
+                    style={{ background: 'linear-gradient(135deg, #FF6B4A, #6D5DFC)' }}
                   />
                 )}
               </Link>

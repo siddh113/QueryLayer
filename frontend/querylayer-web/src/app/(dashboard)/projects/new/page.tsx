@@ -32,24 +32,23 @@ export default function NewProjectPage() {
     <div className="max-w-lg fade-in">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight gradient-text-hero">New project</h1>
-        <p className="text-sm mt-2" style={{ color: '#71717a' }}>Configure your new backend project</p>
+        <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>Configure your new backend project</p>
       </div>
 
       <form
         onSubmit={handleSubmit}
         className="rounded-2xl p-7 space-y-6 glass-card"
-        style={{ boxShadow: '0 0 40px rgba(0, 0, 0, 0.3)' }}
       >
         {error && (
           <div className="text-sm px-4 py-3 rounded-xl"
-            style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.15)', color: '#f87171' }}
+            style={{ background: 'var(--error-bg)', border: '1px solid var(--error-border)', color: 'var(--error-text)' }}
           >
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-[13px] font-medium mb-2" style={{ color: '#a1a1aa' }}>Project name</label>
+          <label className="block text-[13px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Project name</label>
           <input
             type="text"
             value={name}
@@ -58,12 +57,12 @@ export default function NewProjectPage() {
             placeholder="my-backend"
             className="w-full rounded-xl px-4 py-2.5 text-sm input-glow focus:outline-none"
             style={{
-              background: 'rgba(7, 7, 14, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#f0f0f5',
+              background: 'var(--input-bg)',
+              border: '1px solid var(--input-border)',
+              color: 'var(--text-primary)',
             }}
           />
-          <p className="text-[12px] mt-2" style={{ color: '#3f3f46' }}>Use lowercase letters, numbers, and hyphens</p>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--text-faint)' }}>Use lowercase letters, numbers, and hyphens</p>
         </div>
 
         <div className="flex gap-3 pt-1">
@@ -76,7 +75,7 @@ export default function NewProjectPage() {
               {loading ? (
                 <>
                   <span className="animate-spin w-3.5 h-3.5 rounded-full"
-                    style={{ border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white' }}
+                    style={{ border: '2px solid currentColor', borderTopColor: 'transparent', opacity: 0.85 }}
                   />
                   Creating...
                 </>
@@ -90,17 +89,15 @@ export default function NewProjectPage() {
             onClick={() => router.back()}
             className="px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
             style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#a1a1aa',
+              background: 'var(--hover-nav-bg)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-muted)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+              e.currentTarget.style.background = 'var(--bg-hover)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.background = 'var(--hover-nav-bg)';
             }}
           >
             Cancel

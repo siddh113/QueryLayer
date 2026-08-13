@@ -50,14 +50,14 @@ export default function DashboardPage() {
         {/* Total Projects */}
         <div className="rounded-2xl p-6 glass-card-hover relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-20"
-            style={{ background: 'radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent)', filter: 'blur(20px)' }}
+            style={{ background: 'radial-gradient(circle, rgba(255, 107, 74, 0.3), transparent)', filter: 'blur(20px)' }}
           />
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.15)' }}
+                style={{ background: 'rgba(255, 107, 74, 0.1)', border: '1px solid rgba(255, 107, 74, 0.15)' }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8F7CF7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
                 </svg>
               </div>
@@ -97,14 +97,14 @@ export default function DashboardPage() {
           onClick={() => window.location.href = '/projects/new'}
         >
           <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-20"
-            style={{ background: 'radial-gradient(circle, rgba(6, 182, 212, 0.3), transparent)', filter: 'blur(20px)' }}
+            style={{ background: 'radial-gradient(circle, rgba(109, 93, 252, 0.3), transparent)', filter: 'blur(20px)' }}
           />
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.15)' }}
+                style={{ background: 'rgba(109, 93, 252, 0.1)', border: '1px solid rgba(109, 93, 252, 0.15)' }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF8F66" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
               </div>
@@ -112,7 +112,7 @@ export default function DashboardPage() {
             </div>
             <Link href="/projects/new"
               className="text-sm font-semibold transition-colors duration-200 flex items-center gap-1.5"
-              style={{ color: '#22d3ee' }}
+              style={{ color: '#FF8F66' }}
             >
               Create new project
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -131,7 +131,7 @@ export default function DashboardPage() {
           style={{ borderBottom: '1px solid var(--border)' }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #6366f1, #06b6d4)' }} />
+            <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(to bottom, #FF6B4A, #6D5DFC)' }} />
             <span className="text-sm font-semibold" style={{ color: 'var(--section-title-color)' }}>Recent Projects</span>
           </div>
           <Link
@@ -157,7 +157,7 @@ export default function DashboardPage() {
         ) : projects.length === 0 ? (
           <div className="px-6 py-14 text-center">
             <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center"
-              style={{ background: 'rgba(99, 102, 241, 0.06)', border: '1px solid rgba(99, 102, 241, 0.1)' }}
+              style={{ background: 'rgba(255, 107, 74, 0.06)', border: '1px solid rgba(255, 107, 74, 0.1)' }}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
                 style={{ color: 'var(--text-faint)' }}
